@@ -4,7 +4,7 @@ interface Props {
   description?: string;
 }
 
-import WhatsAppButton from "../components/support/WhatsAppButton";
+import TypebotWidget from "../components/support/TypebotWidget.astro";
 
 const {
   title = "Asesoría Gratuita – Org – Finanzas con Claudia Uribe",
@@ -154,7 +154,7 @@ const siteUrl = "https://finanzasconclaudiauribe.com";
   </head>
   <body class="min-h-screen">
     <slot />
-    <WhatsAppButton client:load />
+    <TypebotWidget />
 
     <!-- Tracking Helper -->
     <script is:inline>

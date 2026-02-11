@@ -38,9 +38,13 @@ export default function StickyCTA({
       `}
     >
       <a
-        href={ctaUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          if ((window as any).Typebot) {
+            (window as any).Typebot.open();
+          }
+        }}
         className="
           relative
           bg-claudia-accent-green

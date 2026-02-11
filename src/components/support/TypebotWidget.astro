@@ -1,0 +1,55 @@
+---
+/**
+ * TypebotWidget.astro
+ * Integrates the Typebot chat widget (asesoria-gratuita-org-nova-050sprd).
+ * Positioned on the LEFT via global CSS to balance with WhatsApp on the right.
+ */
+---
+
+<script type="module">
+    import Typebot from "https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js";
+    window.Typebot = Typebot;
+
+    Typebot.initBubble({
+        typebot: "asesoria-gratuita-org-nova-050sprd",
+        apiHost: "https://typebot.co",
+        previewMessage: {
+            message: "🚀 Iniciar mi Plan Financiero",
+            autoShowDelay: 3000,
+            avatarUrl: "https://finanzasconclaudiauribe.com/favicon.png",
+        },
+        theme: {
+            button: {
+                backgroundColor: "#2979ff" /* Claudia Blue */,
+                iconColor: "#ffffff",
+                size: "large",
+            },
+            previewMessage: {
+                backgroundColor: "#ffffff",
+                textColor: "#1a1a1a",
+                closeButtonBackgroundColor: "#f5f5f5",
+                closeButtonIconColor: "#333",
+            },
+            chatWindow: {
+                backgroundColor: "#1a1a1a" /* Dark Theme */,
+            },
+        },
+    });
+</script>
+
+<style is:global>
+    /* 
+    Force Typebot Bubble to the LEFT side.
+    The custom element <typebot-bubble> is appended to body.
+    We override standard positioning (usually right) with left.
+  */
+    typebot-bubble {
+        position: fixed !important; /* Force fixed positioning */
+        left: 1.5rem !important; /* left-6 approx */
+        right: auto !important;
+        bottom: 1.5rem !important; /* bottom-6 approx */
+        z-index: 9999 !important; /* Ensure it's above everything */
+        display: block !important;
+        opacity: 1 !important;
+    }
+</style>
