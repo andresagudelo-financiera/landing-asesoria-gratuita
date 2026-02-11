@@ -10,6 +10,26 @@
     import Typebot from "https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js";
     window.Typebot = Typebot;
 
+    // Helper to get UTM parameters
+    const getUTMParams = () => {
+        const params = new URLSearchParams(window.location.search);
+        const utmKeys = [
+            "utm_source",
+            "utm_medium",
+            "utm_campaign",
+            "utm_term",
+            "utm_content",
+        ];
+        const utmParams = {};
+
+        utmKeys.forEach((key) => {
+            if (params.has(key)) {
+                utmParams[key] = params.get(key);
+            }
+        });
+        return utmParams;
+    };
+
     Typebot.initBubble({
         typebot: "asesoria-gratuita-org-nova-050sprd",
         apiHost: "https://typebot.co",
@@ -18,6 +38,7 @@
             autoShowDelay: 3000,
             avatarUrl: "https://financieramentecompany.com/favicon.png",
         },
+        prefilledVariables: getUTMParams(),
         theme: {
             button: {
                 backgroundColor: "#2979ff" /* Claudia Blue */,

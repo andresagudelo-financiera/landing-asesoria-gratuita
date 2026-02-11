@@ -1,47 +1,4 @@
-<!DOCTYPE html><html lang="es" data-astro-cid-ouamjn2i> <head><!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-PSCNX2SQH5"></script><script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-PSCNX2SQH5");
-    </script><!-- Microsoft Clarity --><script type="text/javascript">
-      if (
-        window.location.hostname !== "localhost" &&
-        window.location.hostname !== "127.0.0.1"
-      ) {
-        (function (c, l, a, r, i, t, y) {
-          c[a] =
-            c[a] ||
-            function () {
-              (c[a].q = c[a].q || []).push(arguments);
-            };
-          t = l.createElement(r);
-          t.async = 1;
-          t.src = "https://www.clarity.ms/tag/" + i;
-          y = l.getElementsByTagName(r)[0];
-          y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "vdqcvyqsgt");
-      }
-    </script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" type="image/png" href="/favicon.png"><link rel="shortcut icon" href="/favicon.png"><link rel="apple-touch-icon" href="/favicon.png"><meta name="msapplication-TileImage" content="/favicon.png"><!-- Primary Meta Tags --><title>Asesoría Gratuita – Org – Finanzas con Claudia Uribe</title><meta name="title" content="Asesoría Gratuita – Org – Finanzas con Claudia Uribe"><meta name="description" content="Aprende a manejar tu dinero. Agenda tu asesoría gratuita y recibe un plan de acción hecho especialmente para ti."><meta name="author" content="Claudia Uribe"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://financieramentecompany.com"><meta property="og:title" content="Asesoría Gratuita – Org – Finanzas con Claudia Uribe"><meta property="og:description" content="Aprende a manejar tu dinero. Agenda tu asesoría gratuita y recibe un plan de acción hecho especialmente para ti."><meta property="og:image" content="https://financieramentecompany.com/1-1.jpeg"><meta property="og:image:width" content="1920"><meta property="og:image:height" content="1080"><meta property="og:image:type" content="image/jpeg"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://financieramentecompany.com"><meta property="twitter:title" content="Asesoría Gratuita – Org – Finanzas con Claudia Uribe"><meta property="twitter:description" content="Aprende a manejar tu dinero. Agenda tu asesoría gratuita y recibe un plan de acción hecho especialmente para ti."><meta property="twitter:image" content="https://financieramentecompany.com/1-1.jpeg"><!-- Schema.org Product --><script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "name": "Asesoría Gratuita - Claudia Uribe",
-        "description": "Aprende a manejar tu dinero con una asesoría personalizada.",
-        "brand": {
-          "@type": "Brand",
-          "name": "Claudia Uribe"
-        },
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD",
-          "availability": "https://schema.org/InStock"
-        }
-      }
-    </script><!-- Meta Pixel Code --><script>
+<!DOCTYPE html><html lang="es" data-astro-cid-ouamjn2i> <head><!-- Meta Pixel Code --><script>
       !(function (f, b, e, v, n, t, s) {
         if (f.fbq) return;
         n = f.fbq = function () {
@@ -262,6 +219,26 @@ Volver al inicio
     import Typebot from "https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js";
     window.Typebot = Typebot;
 
+    // Helper to get UTM parameters
+    const getUTMParams = () => {
+        const params = new URLSearchParams(window.location.search);
+        const utmKeys = [
+            "utm_source",
+            "utm_medium",
+            "utm_campaign",
+            "utm_term",
+            "utm_content",
+        ];
+        const utmParams = {};
+
+        utmKeys.forEach((key) => {
+            if (params.has(key)) {
+                utmParams[key] = params.get(key);
+            }
+        });
+        return utmParams;
+    };
+
     Typebot.initBubble({
         typebot: "asesoria-gratuita-org-nova-050sprd",
         apiHost: "https://typebot.co",
@@ -270,6 +247,7 @@ Volver al inicio
             autoShowDelay: 3000,
             avatarUrl: "https://financieramentecompany.com/favicon.png",
         },
+        prefilledVariables: getUTMParams(),
         theme: {
             button: {
                 backgroundColor: "#2979ff" /* Claudia Blue */,
@@ -298,46 +276,4 @@ Volver al inicio
           });
         }
       };
-
-      // UTM Parameter Persistence
-      (function () {
-        try {
-          const urlParams = new URLSearchParams(window.location.search);
-          const utmKeys = [
-            "utm_source",
-            "utm_medium",
-            "utm_campaign",
-            "utm_term",
-            "utm_content",
-          ];
-          const activeParams = [];
-
-          utmKeys.forEach((key) => {
-            const value = urlParams.get(key);
-            if (value) {
-              activeParams.push(`${key}=${encodeURIComponent(value)}`);
-            }
-          });
-
-          if (activeParams.length > 0) {
-            const queryString = activeParams.join("&");
-            const links = document.querySelectorAll(
-              'a[href*="leapchat.digital"]',
-            );
-
-            links.forEach((link) => {
-              const currentHref = link.getAttribute("href");
-              if (currentHref) {
-                const separator = currentHref.includes("?") ? "&" : "?";
-                link.setAttribute(
-                  "href",
-                  `${currentHref}${separator}${queryString}`,
-                );
-              }
-            });
-          }
-        } catch (e) {
-          console.error("UTM Handler Error:", e);
-        }
-      })();
     </script> </body> </html>
