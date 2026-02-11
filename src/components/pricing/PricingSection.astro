@@ -1,0 +1,259 @@
+---
+/**
+ * Pricing Section - "The Price Anchor"
+ * Visualización premium con precio tachado y valor real
+ */
+
+const hotmartUrl = "https://pay.hotmart.com/Q104268411L?off=daig1z7w";
+const reserveUrl = "https://pay.hotmart.com/Q104268411L?off=o96xp0c2";
+---
+
+<section id="pricing" class="relative py-16 lg:py-24 overflow-hidden">
+  <!-- Background Effects -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-rebellion-green/5 rounded-full blur-3xl"
+    >
+    </div>
+  </div>
+
+  <div class="container-rebellion relative z-10">
+    <!-- Section Header -->
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <span
+        class="inline-block px-4 py-2 rounded-full bg-honey-beehive/10 text-honey-beehive text-sm font-semibold mb-6"
+      >
+        🔥 Oferta Especial
+      </span>
+      <!-- New Image Before Headline -->
+      <div class="mb-12 max-w-2xl mx-auto animate-[slide-up_0.8s_ease-out]">
+        <div class="relative group">
+          <div
+            class="absolute -inset-1 bg-gradient-to-r from-rebellion-green/30 to-rebellion-cyan/30 rounded-2xl blur-md opacity-75 group-hover:opacity-100 transition duration-1000"
+          >
+          </div>
+          <div
+            class="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+          >
+            <img
+              src="/a01e4cf7-5a0c-4e70-9746-ec4f3a9c489c.jpg"
+              alt="Money Training Transformation"
+              class="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-4xl lg:text-5xl font-black text-off-white mb-6">
+        Invierte en tu <span class="text-gradient-rebellion"
+          >transformación</span
+        >
+      </h2>
+      <p class="text-xl text-soft-gray">
+        No es masificar. Es replicar con criterio.
+      </p>
+    </div>
+
+    <!-- Pricing Grid -->
+    <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
+      <!-- Main Pricing Card -->
+      <div class="relative group">
+        <!-- Glow Effect -->
+        <div
+          class="absolute -inset-1 bg-gradient-to-r from-rebellion-green to-rebellion-cyan rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition duration-500"
+        >
+        </div>
+
+        <!-- Card -->
+        <div
+          class="relative h-full glassmorphism rounded-3xl p-8 lg:p-12 border border-white/10 flex flex-col"
+        >
+          <!-- Badge -->
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+            <div
+              class="text-[12px] truncate md:text-base bg-gradient-to-r from-honey-beehive to-orange-400 text-glimpse-space px-6 py-2 rounded-full font-bold text-sm uppercase tracking-wider whitespace-nowrap"
+            >
+              Oferta de Lanzamiento
+            </div>
+          </div>
+
+          <!-- Program Name -->
+          <div class="text-center pt-4 mb-8">
+            <h3 class="text-2xl lg:text-3xl font-bold text-off-white mb-2">
+              Inversión Total
+            </h3>
+            <p class="text-soft-gray text-sm">Mejor relación valor-precio</p>
+          </div>
+
+          <!-- Valorado en -->
+          <div class="mb-6 flex flex-col items-center justify-center">
+            <div class="flex items-center gap-2 mb-2">
+              <span
+                class="text-soft-gray/60 text-sm uppercase tracking-widest font-light"
+                >Valor real:</span
+              >
+              <span
+                class="price-crossed text-2xl font-light opacity-60 text-soft-gray"
+                >$11,600 USD</span
+              >
+            </div>
+
+            <div class="space-y-4">
+              <div
+                class="text-soft-gray/50 text-xl font-black price-crossed italic inline-block px-4"
+              >
+                50% OFF
+              </div>
+              <div
+                class="text-rebellion-cyan text-xl md:text-2xl font-black tracking-tight drop-shadow-[0_0_15px_rgba(0,212,255,0.3)]"
+              >
+                40% OFF 🚀
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Display -->
+          <div class="text-center mb-8">
+            <div class="flex items-center justify-center gap-4">
+              <span class="text-5xl lg:text-7xl font-black text-rebellion-green"
+                >$3,480</span
+              >
+              <span class="text-2xl text-soft-gray font-light">USD</span>
+            </div>
+            <p class="text-soft-gray mt-2 text-sm">
+              Pago único · Acceso por dos años
+            </p>
+          </div>
+
+          <div class="border-t border-white/10 my-8"></div>
+
+          <!-- Features List -->
+          <ul class="space-y-4 mb-10 flex-grow">
+            {
+              [
+                "Formación Completa (+200h)",
+                "Acceso al Método Vórtex",
+                "Simuladores Profesionales",
+                "Acompañamiento con Coaches",
+                "Comunidad Exclusiva",
+              ].map((feature) => (
+                <li class="flex items-start gap-3">
+                  <span class="flex-shrink-0 w-5 h-5 rounded-full bg-rebellion-green/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      class="w-3 h-3 text-rebellion-green"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </span>
+                  <span class="text-off-white text-sm">{feature}</span>
+                </li>
+              ))
+            }
+          </ul>
+
+          <!-- CTA Button -->
+          <a
+            href={hotmartUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onclick="trackInitiateCheckout()"
+            class="btn-rebellion w-full text-center text-lg block uppercase tracking-wider text-sm md:text-base"
+          >
+            Quiero Mi Cupo Ahora
+          </a>
+        </div>
+      </div>
+
+      <!-- Reservation Card -->
+      <div class="relative group">
+        <!-- Card -->
+        <div
+          class="relative h-full glassmorphism rounded-3xl p-8 lg:p-12 border border-white/5 bg-white/[0.02] flex flex-col"
+        >
+          <!-- Program Name -->
+          <div class="text-center pt-4 mb-8">
+            <h3 class="text-2xl lg:text-3xl font-bold text-off-white mb-2">
+              Reservar Cupo
+            </h3>
+            <p class="text-soft-gray text-sm">Asegura tu lugar hoy</p>
+          </div>
+
+          <p class="text-center text-soft-gray/80 text-sm mb-8 leading-relaxed">
+            ¿Quieres aprovechar la oferta de lanzamiento pero necesitas unos
+            días? <br />
+            <span class="text-rebellion-cyan">Asegura tu cupo</span> por un monto
+            mínimo y paga el resto después.
+          </p>
+
+          <!-- Price Display -->
+          <div class="text-center mb-8">
+            <div class="flex items-center justify-center gap-4">
+              <span class="text-5xl lg:text-7xl font-black text-rebellion-cyan"
+                >$200</span
+              >
+              <span class="text-2xl text-soft-gray font-light">USD</span>
+            </div>
+            <p class="text-soft-gray mt-2 text-sm">Reserva mínima requerida</p>
+            <p
+              class="text-[10px] text-rebellion-cyan/50 uppercase tracking-widest mt-1"
+            >
+              Valor no reembolsable
+            </p>
+          </div>
+
+          <div class="border-t border-white/10 my-8"></div>
+
+          <!-- Benefits for Reservation -->
+          <ul class="space-y-4 mb-10 flex-grow">
+            {
+              [
+                "Precio de lanzamiento garantizado",
+                "Entrada inmediata a la comunidad",
+                "Acceso a la primera sesión en vivo",
+                "Acompañamiento personalizado inicial",
+              ].map((feature) => (
+                <li class="flex items-start gap-3">
+                  <span class="flex-shrink-0 w-5 h-5 rounded-full bg-rebellion-cyan/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      class="w-3 h-3 text-rebellion-cyan"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </span>
+                  <span class="text-off-white/80 text-sm">{feature}</span>
+                </li>
+              ))
+            }
+          </ul>
+
+          <!-- CTA Button Secondary -->
+          <a
+            href={reserveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onclick="trackInitiateCheckout('Reserva')"
+            class="w-full py-4 px-8 rounded-full bg-white/5 border border-white/20 text-off-white text-center font-bold uppercase tracking-widest hover:bg-rebellion-cyan hover:text-glimpse-space hover:border-white transition-all duration-500 text-sm md:text-base hover:shadow-[0_0_30px_rgba(0,212,255,0.4)] animate-[pulse_3s_infinite]"
+          >
+            Reservar Mi Cupo
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

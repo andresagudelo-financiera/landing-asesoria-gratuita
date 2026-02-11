@@ -1,0 +1,119 @@
+---
+/**
+ * ContactForm - "Registro de Interés"
+ * Sección para capturar leads mediante un Google Form embebido
+ */
+---
+
+<section id="contact" class="relative py-16 lg:py-24 overflow-hidden">
+    <!-- Background Effects -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-rebellion-cyan/5 rounded-full blur-3xl"
+        >
+        </div>
+    </div>
+
+    <div class="container-rebellion relative z-10">
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span
+                class="inline-block px-4 py-2 rounded-full bg-rebellion-cyan/10 text-rebellion-cyan text-sm font-semibold mb-6"
+            >
+                📬 Registro de Interés
+            </span>
+            <h2 class="text-4xl lg:text-5xl font-black text-off-white mb-6">
+                ¿Aún tienes <span class="text-gradient-rebellion">dudas</span>?
+            </h2>
+            <p class="text-xl text-soft-gray">
+                Déjanos tus datos y nos pondremos en contacto contigo para
+                validar tu acceso al programa.
+            </p>
+        </div>
+
+        <!-- Form Container -->
+        <div class="max-w-4xl mx-auto">
+            <div class="relative group">
+                <!-- Glow Effect -->
+                <div
+                    class="absolute -inset-1 bg-gradient-to-r from-rebellion-cyan to-rebellion-green rounded-3xl blur-lg opacity-20 group-hover:opacity-40 transition duration-1000"
+                >
+                </div>
+
+                <!-- Glassmorphism Card for Iframe -->
+                <div
+                    class="relative glassmorphism rounded-3xl overflow-hidden min-h-[800px] flex flex-col"
+                >
+                    <div
+                        class="w-full bg-white/5 p-4 border-b border-white/10 flex items-center justify-between"
+                    >
+                        <div class="flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500/50">
+                            </div>
+                            <div
+                                class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"
+                            >
+                            </div>
+                            <div
+                                class="w-2.5 h-2.5 rounded-full bg-green-500/50"
+                            >
+                            </div>
+                        </div>
+                        <span
+                            class="text-[10px] text-soft-gray/50 uppercase tracking-widest font-bold"
+                            >Formulario de Aplicación Oficial</span
+                        >
+                    </div>
+
+                    <iframe
+                        src="https://docs.google.com/forms/d/e/1FAIpQLScUN9UXkjh4IAdBKnHVNkRvUbvJvNzb8EmS-TvzrDE0jwb3jQ/viewform?embedded=true"
+                        width="100%"
+                        height="800"
+                        frameborder="0"
+                        marginheight="0"
+                        marginwidth="0"
+                        class="filter grayscale-[0.2] brightness-[0.9] hover:grayscale-0 hover:brightness-100 transition duration-500"
+                    >
+                        Cargando…
+                    </iframe>
+
+                    <!-- Fallback Link -->
+                    <div
+                        class="bg-white/5 p-6 border-t border-white/10 text-center"
+                    >
+                        <p class="text-soft-gray text-sm mb-4">
+                            ¿No puedes ver el formulario o te pide iniciar
+                            sesión?
+                        </p>
+                        <a
+                            href="https://forms.gle/142XfFRCvSJC7AZx5"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rebellion-cyan/20 text-rebellion-cyan hover:bg-rebellion-cyan hover:text-glimpse-space transition-all duration-300 font-bold uppercase tracking-widest text-xs"
+                        >
+                            Abrir Formulario en Nueva Pestaña
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                ></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-soft-gray/40 text-xs mt-8 italic">
+                Tu información será tratada con total confidencialidad por el
+                equipo de Money Training.
+            </p>
+        </div>
+    </div>
+</section>

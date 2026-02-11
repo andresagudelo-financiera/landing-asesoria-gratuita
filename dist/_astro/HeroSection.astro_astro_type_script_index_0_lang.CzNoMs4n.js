@@ -1,0 +1,1 @@
+import{g as o}from"./index.CB87Sc6I.js";import{S as t}from"./ScrollTrigger.Cv03IO65.js";o.registerPlugin(t);const e=o.timeline({scrollTrigger:{trigger:"#hero",start:"top top",end:"bottom top",scrub:1}});e.to(".hero-content",{y:-100,opacity:0,ease:"none"},0);e.to(".hero-image-container",{y:50,scale:1.05,ease:"none"},0);

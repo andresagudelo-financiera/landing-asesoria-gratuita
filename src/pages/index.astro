@@ -1,0 +1,32 @@
+---
+/**
+ * Asesoría Gratuita - Landing Page Principal
+ * Finanzas con Claudia Uribe
+ */
+
+import MainLayout from "../layouts/MainLayout.astro";
+import HeroSection from "../components/hero/HeroSection.astro";
+import ValuePropsSection from "../components/benefits/ValuePropsSection.astro";
+import BioSection from "../components/bio/BioSection.astro";
+import Footer from "../components/footer/Footer.astro";
+import StickyCTA from "../components/cta/StickyCTA";
+
+import "../styles/global.css";
+---
+
+<MainLayout>
+  <!-- Hero Section -->
+  <HeroSection />
+
+  <!-- Value Propositions / "Lo que sucede" -->
+  <ValuePropsSection />
+
+  <!-- Bio Section - "Soy Claudia Uribe" -->
+  <BioSection />
+
+  <!-- Footer -->
+  <Footer />
+
+  <!-- Sticky CTA - React Island -->
+  <StickyCTA client:load />
+</MainLayout>

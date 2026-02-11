@@ -1,0 +1,9 @@
+name: landing-asesoria-gratuita
+static_sites:
+- name: landing-asesoria-gratuita
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: andresagudelo-financiera/landing-asesoria-gratuita
+  build_command: npm run build
+  output_dir: dist

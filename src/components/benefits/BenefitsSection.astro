@@ -1,0 +1,216 @@
+---
+/**
+ * Benefits Section - Key Transformation Points
+ */
+---
+
+<section class="py-24 relative overflow-hidden bg-glimpse-space">
+  <!-- Dynamic Background Patterns -->
+  <div class="absolute inset-0 z-0">
+    <div
+      class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-rebellion-green/10 rounded-full blur-[120px] animate-pulse"
+    >
+    </div>
+    <div
+      class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-rebellion-cyan/10 rounded-full blur-[120px] animate-pulse"
+      style="animation-delay: 2s;"
+    >
+    </div>
+    <div
+      class="absolute inset-0 opacity-[0.03]"
+      style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 40px 40px;"
+    >
+    </div>
+  </div>
+
+  <div class="container-rebellion relative z-10">
+    <!-- Section Header -->
+    <div class="text-center max-w-3xl mx-auto mb-20">
+      <h2
+        class="text-4xl lg:text-6xl font-black text-off-white mb-6 tracking-tight"
+      >
+        ¿Qué vas a <span class="text-gradient-rebellion">transformar</span>?
+      </h2>
+      <p class="text-xl text-soft-gray leading-relaxed">
+        Money Training no es otro curso de finanzas. Es un programa de
+        transformación integral diseñado para la era digital.
+      </p>
+    </div>
+
+    <!-- Benefits Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Benefit Card Component Pattern */}
+      {
+        [
+          {
+            title: "Paso 1: Fundamentos",
+            desc: "Construye una base sólida, clara y profesional. Ordena y traduce la realidad financiera de forma práctica y humana.",
+            icon: "M13 10V3L4 14h7v7l9-11h-7z", // Mentalidad/Base
+          },
+          {
+            title: "Paso 2: Estructura y Modelo",
+            desc: "Aprende a ejercer como Money Strategist con un sistema de trabajo estandarizado que garantiza sostenibilidad financiera.",
+            icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", // Estructura
+          },
+          {
+            title: "Paso 3: Marketing y Captación",
+            desc: "Aprende a generar demanda real. Posicionamiento profesional y marca personal aplicada para atraer clientes sin depender de factores externos.",
+            icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z", // Marketing
+          },
+          {
+            title: "Paso 4: Ventas y Ejercicio",
+            desc: "Convierte conocimiento en ingresos reales. Laboratorio comercial para ofrecer tus servicios con claridad, seguridad y sin sentirte vendedor.",
+            icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", // Ventas/Seguridad
+          },
+          {
+            title: "Paso 5: Escalabilidad",
+            desc: "Multiplica tu práctica en un sistema sostenible. Replicación del acompañamiento y visión de largo plazo para impactar a niveles masivos.",
+            icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z", // Escalabilidad
+          },
+          {
+            title: "Proyección Profesional",
+            desc: "Acceso exclusivo a la Comunidad de Élite y la posibilidad de aplicar para trabajar como Money Strategist en nuestro equipo.",
+            icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z", // Comunidad
+          },
+        ].map((benefit) => (
+          <div class="benefit-card group">
+            <div class="benefit-card-inner">
+              <div class="icon-container">
+                <svg
+                  class="w-7 h-7"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d={benefit.icon}
+                  />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-off-white mb-4 group-hover:text-rebellion-green transition-colors">
+                {benefit.title}
+              </h3>
+              <p class="text-soft-gray leading-relaxed text-base">
+                {benefit.desc}
+              </p>
+            </div>
+            <div class="card-glow-effect" />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .benefit-card {
+    position: relative;
+    border-radius: 1.5rem;
+    padding: 1px; /* Required for the border gradient effect */
+    background: rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+  }
+
+  .benefit-card-inner {
+    position: relative;
+    z-index: 2;
+    background: rgba(30, 30, 28, 0.8);
+    backdrop-filter: blur(24px);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    height: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.5s ease;
+  }
+
+  .benefit-card:hover {
+    transform: translateY(-8px);
+    background: linear-gradient(
+      135deg,
+      rgba(51, 180, 154, 0.3) 0%,
+      rgba(0, 212, 255, 0.3) 100%
+    );
+  }
+
+  .benefit-card:hover .benefit-card-inner {
+    background: rgba(30, 30, 28, 0.4);
+    border-color: rgba(51, 180, 154, 0.2);
+  }
+
+  .icon-container {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    background: linear-gradient(
+      135deg,
+      rgba(51, 180, 154, 0.2) 0%,
+      rgba(0, 212, 255, 0.2) 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    color: var(--color-rebellion-green);
+    border: 1px solid rgba(51, 180, 154, 0.3);
+    position: relative;
+    transition: all 0.5s ease;
+    box-shadow: 0 0 20px rgba(51, 180, 154, 0.1);
+  }
+
+  .icon-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    background: var(--color-rebellion-green);
+    opacity: 0;
+    filter: blur(15px);
+    transition: opacity 0.5s ease;
+    z-index: -1;
+  }
+
+  .benefit-card:hover .icon-container {
+    transform: scale(1.1) rotate(5deg);
+    background: var(--gradient-rebellion);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 0 30px rgba(51, 180, 154, 0.4);
+  }
+
+  .benefit-card:hover .icon-container::after {
+    opacity: 0.4;
+  }
+
+  .card-glow-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(
+      circle at center,
+      rgba(51, 180, 154, 0.1) 0%,
+      transparent 70%
+    );
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .benefit-card:hover .card-glow-effect {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* Responsive refinements */
+  @media (max-width: 768px) {
+    .benefit-card-inner {
+      padding: 2rem;
+    }
+  }
+</style>
