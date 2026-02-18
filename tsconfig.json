@@ -1,0 +1,19 @@
+{
+    "extends": "astro/tsconfigs/strict",
+    "compilerOptions": {
+        "module": "esnext",
+        "moduleResolution": "node",
+        "lib": [
+            "esnext",
+            "dom"
+        ],
+        "target": "esnext",
+        "jsx": "react-jsx",
+        "jsxImportSource": "react",
+        "types": [
+            "node"
+        ],
+        "strict": true,
+        "allowJs": true
+    }
+}

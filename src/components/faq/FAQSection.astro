@@ -1,0 +1,100 @@
+---
+/**
+ * FAQ Section - Objection Handling
+ */
+
+const faqs = [
+    {
+        question: "¿Realmente es gratis?",
+        answer: "Sí, la sesión de diagnóstico es 100% gratuita. Te reunirás con uno de nuestros coaches certificados para evaluar tu situación actual y mostrarte cómo nuestro programa puede ayudarte. No hay compromiso, solo claridad y estrategia.",
+    },
+    {
+        question: "¿La asesoría es con Claudia Uribe?",
+        answer: "La sesión inicial de diagnóstico es con uno de los coaches élite de mi equipo. Han sido formados directamente por mí y están capacitados al mismo nivel de excelencia para aplicar mi metodología y darte la mejor ruta de acción.",
+    },
+    {
+        question: "¿Necesito tener mucho dinero para empezar?",
+        answer: "No. De hecho, el mejor momento para organizar tus finanzas es cuando sientes que el dinero no alcanza. Te enseñaremos a administrar lo que tienes para que puedas construir patrimonio.",
+    },
+    {
+        question: "¿Me van a intentar vender algo toda la sesión?",
+        answer: "No. La sesión es de alto valor educativo. Analizaremos tus números y te daremos un plan de acción. Si al final ves valor en nuestro acompañamiento a largo plazo, te presentaremos una opción, pero la decisión es tuya.",
+    },
+    {
+        question: "¿Es presencial o virtual?",
+        answer: "Es 100% virtual por Zoom. Puedes conectarte desde la comodidad de tu casa u oficina.",
+    },
+];
+---
+
+<section class="py-20 bg-claudia-dark border-t border-white/5">
+    <div class="container-rebellion max-w-3xl">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+                Preguntas <span class="text-claudia-accent-orange"
+                    >Frecuentes</span
+                >
+            </h2>
+            <p class="text-claudia-text-gray">
+                Resolvemos tus dudas antes de empezar.
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            {
+                faqs.map((faq, index) => (
+                    <details class="group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 hover:border-claudia-accent-orange/30">
+                        <summary class="flex justify-between items-center p-6 cursor-pointer list-none">
+                            <h3 class="text-lg font-medium text-claudia-text-light group-hover:text-white transition-colors">
+                                {faq.question}
+                            </h3>
+                            <span class="text-claudia-accent-orange transition-transform duration-300 group-open:rotate-180">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    />
+                                </svg>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-claudia-text-gray leading-relaxed animate-fadeIn">
+                            {faq.answer}
+                        </div>
+                    </details>
+                ))
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    details > summary {
+        list-style: none;
+    }
+    details > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+    }
+</style>
