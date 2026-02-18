@@ -10,11 +10,20 @@ interface StickyCTAProps {
  * Dispara evento InitiateCheckout de Meta Pixel
  */
 export default function StickyCTA({
-  ctaUrl = "https://viewer.leapchat.digital/mv-asesoria-gratuita"
+  ctaUrl = "https://typebot.co/asesoria-gratuita-org-nova-050sprd"
 }: { ctaUrl?: string }) {
   const [isVisible, setIsVisible] = useState(false);
+  const [finalUrl, setFinalUrl] = useState(ctaUrl);
+
 
   useEffect(() => {
+    // Append current URL params to the CTA URL
+    const params = window.location.search;
+    if (params) {
+      const separator = ctaUrl?.includes('?') ? '&' : '?';
+      setFinalUrl(`${ctaUrl}${separator}${params.substring(1)}`);
+    }
+
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsVisible(scrollY > 500); // Show after scrolling a bit
@@ -38,7 +47,7 @@ export default function StickyCTA({
       `}
     >
       <a
-        href="#"
+        href={finalUrl}
         onClick={(e) => {
           e.preventDefault();
           if ((window as any).Typebot) {

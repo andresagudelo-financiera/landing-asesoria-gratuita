@@ -7,7 +7,10 @@
 import MainLayout from "../layouts/MainLayout.astro";
 import HeroSection from "../components/hero/HeroSection.astro";
 import ValuePropsSection from "../components/benefits/ValuePropsSection.astro";
+import TeamSection from "../components/team/TeamSection.astro";
 import BioSection from "../components/bio/BioSection.astro";
+import TestimonialsSection from "../components/testimonials/TestimonialsSection.astro";
+import FAQSection from "../components/faq/FAQSection.astro";
 import Footer from "../components/footer/Footer.astro";
 import StickyCTA from "../components/cta/StickyCTA";
 
@@ -21,8 +24,17 @@ import "../styles/global.css";
   <!-- Value Propositions / "Lo que sucede" -->
   <ValuePropsSection />
 
+  <!-- Team Section - Coaches Marquee -->
+  <TeamSection />
+
   <!-- Bio Section - "Soy Claudia Uribe" -->
   <BioSection />
+
+  <!-- Social Proof -->
+  <TestimonialsSection />
+
+  <!-- Objection Handling -->
+  <FAQSection />
 
   <!-- Footer -->
   <Footer />

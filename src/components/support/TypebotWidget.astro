@@ -10,7 +10,7 @@
     import Typebot from "https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js";
     window.Typebot = Typebot;
 
-    // Helper to get UTM parameters
+    // Helper to get UTM parameters and custom vars
     const getUTMParams = () => {
         const params = new URLSearchParams(window.location.search);
         const utmKeys = [
@@ -19,6 +19,8 @@
             "utm_campaign",
             "utm_term",
             "utm_content",
+            "type", // Requested custom param
+            "coach", // Coach profile source
         ];
         const utmParams = {};
 
@@ -27,6 +29,12 @@
                 utmParams[key] = params.get(key);
             }
         });
+
+        // Add aliases for easier usage in Typebot
+        if (utmParams.utm_source) utmParams.source = utmParams.utm_source;
+        if (utmParams.utm_medium) utmParams.medium = utmParams.utm_medium;
+        if (utmParams.utm_campaign) utmParams.campaign = utmParams.utm_campaign;
+
         return utmParams;
     };
 
