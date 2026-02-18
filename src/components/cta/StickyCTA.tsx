@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 
-interface StickyCTAProps {
-  hotmartUrl?: string;
-}
-
 /**
  * StickyCTA - React Island
  * Botón flotante que aparece después del scroll
