@@ -63,25 +63,26 @@ const ctaUrl = "https://viewer.leapchat.digital/mv-asesoria-gratuita";
         <!-- Headline -->
         <h1 class="text-heroic leading-tight lg:leading-tight">
           <span
-            class="block text-claudia-text-light text-4xl md:text-6xl mb-2 uppercase"
-            >Haz que tu dinero</span
+            class="block text-claudia-text-light text-4xl md:text-6xl mb-2 uppercase font-bold"
+            >Hackea tu</span
           >
           <span
-            class="block text-claudia-accent-green text-4xl md:text-6xl uppercase"
-            >trabaje para ti.</span
+            class="block text-claudia-accent-green text-4xl md:text-6xl uppercase font-bold"
+            >estancamiento financiero.</span
           >
         </h1>
 
         <!-- Subheadline -->
         <p
-          class="text-xl lg:text-2xl text-claudia-text-gray font-light max-w-xl leading-relaxed"
+          class="text-xl lg:text-2xl text-claudia-text-gray font-light max-w-xl"
+          style="line-height: 1.6;"
         >
-          Recibe un plan de acción a tu medida con uno de nuestros <span
-            class="text-claudia-accent-green font-medium"
-            >Coaches Certificados</span
-          > para pasar del ahorro estancado a la <span
-            class="text-white font-medium">inversión inteligente</span
-          >.
+          Te obsequiamos un espacio de alto valor con un <span
+            class="text-claudia-accent-green font-medium">Money Strategist</span
+          > especializado en la metodología de <span
+            class="text-white font-medium">Claudia Uribe</span
+          >. Identificaremos tus patrones financieros y trazaremos tu mapa de
+          crecimiento.
         </p>
 
         <!-- CTA Section -->
@@ -93,7 +94,7 @@ const ctaUrl = "https://viewer.leapchat.digital/mv-asesoria-gratuita";
             class="group relative inline-flex items-center justify-center px-8 py-4 bg-claudia-accent-green text-claudia-dark font-bold text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(198,255,0,0.4)]"
           >
             <span class="relative z-10 flex items-center gap-2">
-              AGENDAR CON UN COACH
+              AGENDAR MI SESIÓN GRATUITA
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5 transition-transform group-hover:translate-x-1"
@@ -127,30 +128,30 @@ const ctaUrl = "https://viewer.leapchat.digital/mv-asesoria-gratuita";
           </div>
         </div>
 
-        <!-- Image Container -->
-        <div class="relative z-10">
+        <!-- Image Container - Breakout Effect -->
+        <div
+          class="hero-breakout relative z-10 animate-float"
+          style="transform-origin: center bottom; scale: 1.1;"
+        >
+          <!-- Card Background (offset: flush bottom+right, inset top+left for hand overflow) -->
           <div
-            class="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-claudia-accent-green/20 animate-float"
+            class="absolute top-[12%] left-[12%] right-0 bottom-0 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-claudia-accent-green/20 bg-gradient-to-br from-claudia-dark/80 via-claudia-dark/60 to-transparent backdrop-blur-sm overflow-hidden"
           >
-            <img
-              src="/6.png"
-              alt="Claudia Uribe"
-              class="w-full h-full object-cover object-top brightness-110 contrast-105"
-              loading="eager"
-            />
-
-            <!-- Decorative Light Wash -->
+            <!-- Decorative Light Wash on Card -->
             <div
               class="absolute inset-0 bg-gradient-to-tr from-claudia-accent-green/5 via-transparent to-claudia-accent-orange/5 pointer-events-none"
             >
             </div>
-
-            <!-- Soft Bottom Gradient (Less "Gloomy" than before) -->
-            <div
-              class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80"
-            >
-            </div>
           </div>
+
+          <!-- Image (hands overflow the card to the left and top) -->
+          <img
+            src="/6.png"
+            alt="Claudia Uribe - Money Strategist"
+            class="relative z-10 w-full h-auto brightness-110 contrast-105"
+            style="filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));"
+            loading="eager"
+          />
         </div>
       </div>
     </div>
