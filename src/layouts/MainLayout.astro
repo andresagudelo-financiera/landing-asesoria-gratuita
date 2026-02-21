@@ -7,12 +7,102 @@ interface Props {
 import TypebotWidget from "../components/support/TypebotWidget.astro";
 
 const {
-  title = "Asesoría Gratuita – Org – Finanzas con Claudia Uribe",
-  description = "Aprende a manejar tu dinero. Agenda tu asesoría gratuita y recibe un plan de acción hecho especialmente para ti.",
+  title = "Asesoría Financiera Gratuita | Finanzas con Claudia Uribe®",
+  description = "Agenda tu sesión de diagnóstico financiero gratuita con un Money Strategist especializado. Identifica tus patrones financieros y traza tu mapa de crecimiento con el equipo de Claudia Uribe.",
 } = Astro.props;
 
 const ogImage = "/1-1.jpeg";
 const siteUrl = "https://financieramentecompany.com";
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
+
+// JSON-LD: Organization
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  name: "Finanzas con Claudia Uribe",
+  alternateName: "Financieramente",
+  url: siteUrl,
+  logo: `${siteUrl}/logo/Recurso 2.png`,
+  image: `${siteUrl}${ogImage}`,
+  description:
+    "Equipo de Money Strategists especializados en planeación financiera, formados y liderados por Claudia Uribe. Expertos en acompañamiento financiero 360.",
+  founder: {
+    "@type": "Person",
+    name: "Claudia Uribe",
+    jobTitle: "Asesora Financiera Certificada AMV",
+    description:
+      "Fundadora y líder de Finanzas con Claudia Uribe. Asesora Financiera Certificada por el Autorregulador del Mercado de Valores.",
+  },
+  areaServed: {
+    "@type": "Country",
+    name: "Colombia",
+  },
+  serviceType: "Asesoría Financiera",
+  priceRange: "Sesión de diagnóstico gratuita",
+  sameAs: ["https://www.instagram.com/soyclaudiauribe/"],
+};
+
+// JSON-LD: FAQPage
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "¿La asesoría financiera es realmente gratis?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Sí, la sesión de diagnóstico es 100% gratuita. Te reunirás con uno de nuestros Money Strategists especializados para evaluar tu situación actual y mostrarte cómo nuestro programa puede ayudarte. No hay compromiso, solo claridad y estrategia.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿La asesoría es con Claudia Uribe?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Todo el proceso —desde la sesión de diagnóstico hasta el acompañamiento continuo— es liderado por nuestros Money Strategists especializados, expertos en planeación financiera. Cada uno de ellos está plenamente capacitado para brindarte un acompañamiento 360.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Necesito tener mucho dinero para empezar?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. De hecho, el mejor momento para organizar tus finanzas es cuando sientes que el dinero no alcanza. Te enseñaremos a administrar lo que tienes para que puedas construir patrimonio.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿La sesión es presencial o virtual?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Es 100% virtual a través de Google Meet. Puedes conectarte desde la comodidad de tu casa u oficina.",
+      },
+    },
+  ],
+};
+
+// JSON-LD: Service/Offer
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: "Sesión de Diagnóstico Financiero Gratuita",
+  description:
+    "Sesión gratuita con un Money Strategist especializado para identificar tus patrones financieros y trazar tu mapa de crecimiento personalizado.",
+  provider: {
+    "@type": "Organization",
+    name: "Finanzas con Claudia Uribe",
+  },
+  serviceType: "Diagnóstico Financiero",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "COP",
+    availability: "https://schema.org/LimitedAvailability",
+    description:
+      "Sesión de diagnóstico financiero gratuita. Cupos limitados por mes.",
+  },
+};
 ---
 
 <!doctype html>
@@ -21,23 +111,46 @@ const siteUrl = "https://financieramentecompany.com";
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- SEO & Open Graph -->
+    <!-- SEO Core -->
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Claudia Uribe - Finanzas con Claudia Uribe" />
+    <meta
+      name="keywords"
+      content="asesoría financiera gratuita, planeación financiera Colombia, Money Strategist, Claudia Uribe, inversión inteligente, diagnóstico financiero, libertad financiera, acompañamiento financiero"
+    />
 
     <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={siteUrl} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={`${siteUrl}${ogImage}`} />
+    <meta property="og:image:width" content="1456" />
+    <meta property="og:image:height" content="816" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:site_name" content="Finanzas con Claudia Uribe" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content={siteUrl} />
-    <meta property="twitter:title" content={title} />
-    <meta property="twitter:description" content={description} />
-    <meta property="twitter:image" content={`${siteUrl}${ogImage}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${siteUrl}${ogImage}`} />
+
+    <!-- JSON-LD Structured Data (SEO + AEO) -->
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(organizationSchema)}
+    />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(serviceSchema)}
+    />
 
     <!-- Meta Pixel Code -->
     <script is:inline>
