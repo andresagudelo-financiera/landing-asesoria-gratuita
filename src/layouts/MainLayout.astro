@@ -111,6 +111,19 @@ const serviceSchema = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PSW9HL2PQQ"
+    ></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-PSW9HL2PQQ");
+    </script>
+
     <!-- SEO Core -->
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -201,6 +214,92 @@ const serviceSchema = {
         background-color: var(--color-claudia-dark);
       }
     </style>
+
+    <!-- UTM Persistence & GTM Tracking Scripts -->
+    <script is:inline>
+      // 1. UTM Persistence
+      function getUTMs() {
+        const params = new URLSearchParams(window.location.search);
+        const utms = {};
+        for (const [key, value] of params.entries()) {
+          if (key.startsWith("utm_") || key === "type" || key === "coach") {
+            utms[key] = value;
+          }
+        }
+        return utms;
+      }
+
+      function appendUTMsToLinks() {
+        const utms = getUTMs();
+        if (Object.keys(utms).length === 0) {
+          // Try to load from sessionStorage
+          try {
+            const stored = sessionStorage.getItem("saved_utms");
+            if (stored) {
+              Object.assign(utms, JSON.parse(stored));
+            }
+          } catch (e) {}
+        } else {
+          // Save to sessionStorage
+          try {
+            sessionStorage.setItem("saved_utms", JSON.stringify(utms));
+          } catch (e) {}
+        }
+
+        if (Object.keys(utms).length > 0) {
+          document.querySelectorAll("a").forEach((a) => {
+            try {
+              // Only modify external links or Typebot links (or any hash)
+              if (a.href && !a.href.startsWith("javascript:")) {
+                const url = new URL(a.href);
+                // Don't append if it's an internal anchor
+                if (
+                  url.origin === window.location.origin &&
+                  url.pathname === window.location.pathname &&
+                  url.hash
+                )
+                  return;
+
+                Object.entries(utms).forEach(([key, value]) => {
+                  url.searchParams.set(key, value);
+                });
+                a.href = url.toString();
+              }
+            } catch (e) {
+              // Ignore invalid URLs
+            }
+          });
+        }
+      }
+
+      // Run on load
+      document.addEventListener("DOMContentLoaded", appendUTMsToLinks);
+
+      // 2. GTM Tracking Helper
+      window.trackEvent = function (eventName, eventData = {}) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: eventName,
+          ...eventData,
+        });
+      };
+
+      // Automatically track CTA clicks
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll("[data-track]").forEach((el) => {
+          el.addEventListener("click", () => {
+            const eventName = el.getAttribute("data-track");
+            const section = el.closest("section")?.id || "unknown";
+
+            window.trackEvent("cta_click", {
+              cta_name: eventName,
+              section: section,
+              text: el.innerText ? el.innerText.trim() : "",
+            });
+          });
+        });
+      });
+    </script>
   </head>
   <body class="min-h-screen">
     <slot />

@@ -44,6 +44,7 @@ export default function StickyCTA({
     >
       <a
         href={finalUrl}
+        data-track="sticky_cta"
         onClick={(e) => {
           e.preventDefault();
           if ((window as any).Typebot) {
