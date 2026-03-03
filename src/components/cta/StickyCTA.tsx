@@ -47,9 +47,7 @@ export default function StickyCTA({
         data-track="sticky_cta"
         onClick={(e) => {
           e.preventDefault();
-          if ((window as any).Typebot) {
-            (window as any).Typebot.open();
-          }
+          window.dispatchEvent(new CustomEvent('open-lead-funnel'));
         }}
         className="
           relative

@@ -4,8 +4,6 @@ interface Props {
   description?: string;
 }
 
-import TypebotWidget from "../components/support/TypebotWidget.astro";
-
 const {
   title = "Asesoría Financiera Gratuita | Finanzas con Claudia Uribe®",
   description = "Agenda tu sesión de diagnóstico financiero gratuita con un Money Strategist especializado. Identifica tus patrones financieros y traza tu mapa de crecimiento con el equipo de Claudia Uribe.",
@@ -110,21 +108,17 @@ const serviceSchema = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Google Tag Manager -->
+    <!-- Google Analytics (GA4) - Direct Installation -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PSW9HL2PQQ"
+    ></script>
     <script is:inline>
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "GTM-WBCBNLQP");
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-PSW9HL2PQQ");
     </script>
-    <!-- End Google Tag Manager -->
-
     <!-- Microsoft Clarity -->
     <script type="text/javascript" is:inline>
       (function (c, l, a, r, i, t, y) {
@@ -207,16 +201,15 @@ const serviceSchema = {
         "script",
         "https://connect.facebook.net/en_US/fbevents.js",
       );
-      // TODO: Replace with actual Pixel ID
-      // fbq('init', 'YOUR_PIXEL_ID');
-      // fbq('track', 'PageView');
+      fbq("init", "1935906637314387");
+      fbq("track", "PageView");
     </script>
     <noscript>
       <img
         height="1"
         width="1"
         style="display:none"
-        src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"
+        src="https://www.facebook.com/tr?id=1935906637314387&ev=PageView&noscript=1"
       />
     </noscript>
 
@@ -319,30 +312,6 @@ const serviceSchema = {
     </script>
   </head>
   <body class="min-h-screen">
-    <!-- Google Tag Manager (noscript) -->
-    <noscript
-      ><iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-WBCBNLQP"
-        height="0"
-        width="0"
-        style="display:none;visibility:hidden"></iframe></noscript
-    >
-    <!-- End Google Tag Manager (noscript) -->
     <slot />
-    <TypebotWidget />
-
-    <!-- Tracking Helper -->
-    <script is:inline>
-      window.trackInitiateCheckout = function () {
-        if (typeof fbq !== "undefined") {
-          fbq("track", "InitiateCheckout", {
-            content_name: "Money Training",
-            content_category: "Course",
-            value: 3480,
-            currency: "USD",
-          });
-        }
-      };
-    </script>
   </body>
 </html>

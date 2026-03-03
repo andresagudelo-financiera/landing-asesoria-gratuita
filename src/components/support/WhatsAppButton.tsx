@@ -27,11 +27,19 @@ export default function WhatsAppButton() {
     }, []);
 
     const handleClick = () => {
-        // Track click event for analytics
-        if (typeof window !== 'undefined' && (window as any).fbq) {
-            (window as any).fbq('trackCustom', 'GoogleFormSupportClick', {
+        // Track click event for GA4
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'support_click', {
                 source: source,
                 page: window.location.pathname
+            });
+        }
+
+        // Evento Meta Pixel: Contact
+        if (typeof window !== 'undefined' && (window as any).fbq) {
+            (window as any).fbq('track', 'Contact', {
+                content_name: 'WhatsApp Support',
+                source: source
             });
         }
 
