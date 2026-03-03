@@ -14,6 +14,11 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
+  server: {
+    host: true, // Esto le dice a Node que escuche en 0.0.0.0 en lugar de localhost
+    port: 4321
+  },
+
   output: 'server',
 
   adapter: node({
