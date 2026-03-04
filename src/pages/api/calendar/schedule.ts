@@ -6,62 +6,7 @@ export const prerender = false;
 const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4eVYOXuSv4BRdBTeDEgswf2I7Ym6tw==';
 const CLINT_BASE_URL = 'https://api.clint.digital/v1';
 
-const COACH_CONFIG = [
-    // LIDER: ANDREA
-    // Webhook asignado (Primera opción)
-    { email: 'andrea.estrada@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'alexandra.perdomo@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'elizabeth.rojas@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'johana.bernal@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'kevin.gonzalez@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'monica.navarro@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'robinson.sanchez@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'viviana.huertas@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-    { email: 'yohan.espana@financieramentecu.com', leader: 'Andrea', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43' },
-
-    // LIDER: ANA
-    // Webhook asignado: c4d098dc...
-    { email: 'ana.mendiola@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'lina.cardona@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'luisa.rios@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'luz.pinedo@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'natalia.guerrero@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'nestor.baute@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'olga.rico@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'renier.gonzalez@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'sandy.carrillo@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-    { email: 'sivoney.perez@financieramentecu.com', leader: 'Ana Med', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/c4d098dc-1285-4147-96fe-e98efa37852c' },
-
-    // LIDER: JHON
-    // Webhook asignado: 434a9599...
-    { email: 'daniela.barrera@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'jhon.acevedo@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'bryan.rozo@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'diego.ruiz@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'john.carmona@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'julieta.villa@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'julieth.vargas@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'karen.camacho@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'lorena.martinez@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'marcela.espitia@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'mariana.narvaez@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'mauricio.urrea@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'paula.duque@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-    { email: 'yesica.montoya@financieramentecu.com', leader: 'Jhon', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/434a9599-5ff7-4125-afd0-12aeaa48b1aa' },
-
-    // LIDER: MALU
-    // Webhook asignado: da4eab3d...
-    { email: 'maria.mendiola@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'alejandra.gutierrez@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'andrea.reyes@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'isul.jimenez@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'jacobo.arguello@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'luis.castano@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'monica.mendieta@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'paola.roa@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'tatiana.restrepo@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' },
-    { email: 'victoria.pelaez@financieramentecu.com', leader: 'Malu', webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/da4eab3d-c775-4a33-b5f5-8cb14ed323d3' }
-];
+import { COACH_CONFIG } from '../../../utils/coachConfig';
 
 // Import persistent pointer
 import { getAssigneePointer, saveAssigneePointer } from '../../../utils/assigneePointer';
@@ -82,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // Validar payload (respuestas, fecha, hora, etc)
-        if (!data || !data.date || !data.time || !data.leadDetails) {
+        if (!data || (!data.skipCalendar && (!data.date || !data.time)) || !data.leadDetails) {
             console.log("Validation failed. Missing required fields.");
             return new Response(JSON.stringify({ error: 'Missing required schedule data' }), { status: 400 });
         }
@@ -192,23 +137,25 @@ export const POST: APIRoute = async ({ request }) => {
 
         fs.writeFileSync('/tmp/clint_debug.txt', debugLogs.join('\n'));
 
-        // 5. Crear Enlace de Meet en Google Calendar
+        // 5. Crear Enlace de Meet en Google Calendar (OPCIONAL)
         let googleMeetLink = '';
-        try {
-            const eventData = await createGoogleMeetEvent(
-                assignedCoach.email,
-                data.leadDetails.email,
-                data.date,         // e.g. "2026-03-05"
-                data.time,         // e.g. "14:00"
-                fullName
-            );
+        if (!data.skipCalendar) {
+            try {
+                const eventData = await createGoogleMeetEvent(
+                    assignedCoach.email,
+                    data.leadDetails.email,
+                    data.date,         // e.g. "2026-03-05"
+                    data.time,         // e.g. "14:00"
+                    fullName
+                );
 
-            googleMeetLink = eventData.hangoutLink || eventData.htmlLink || `https://meet.google.com/mock-${Math.random().toString(36).substring(7)}`;
-            console.log(`[CALENDAR] Successfully created Meet link: ${googleMeetLink}`);
-        } catch (calendarError) {
-            console.error("[CALENDAR] Error generating meet link:", calendarError);
-            // Fallback just in case Google API fails so the user still gets a success screen
-            googleMeetLink = `https://meet.google.com/mock-${Math.random().toString(36).substring(7)}`;
+                googleMeetLink = eventData.hangoutLink || eventData.htmlLink || `https://meet.google.com/mock-${Math.random().toString(36).substring(7)}`;
+                console.log(`[CALENDAR] Successfully created Meet link: ${googleMeetLink}`);
+            } catch (calendarError) {
+                console.error("[CALENDAR] Error generating meet link:", calendarError);
+                // Fallback just in case Google API fails so the user still gets a success screen
+                googleMeetLink = `https://meet.google.com/mock-${Math.random().toString(36).substring(7)}`;
+            }
         }
 
         console.log(`[ROUND-ROBIN] Assigned Lead to: ${assignedCoach.email}. Persistent index saved.`);
@@ -220,8 +167,8 @@ export const POST: APIRoute = async ({ request }) => {
                 name: `${assignedCoach.first_name || ''} ${assignedCoach.last_name || ''}`.trim() || 'Tu Asesor(a)',
                 email: assignedCoach.email
             },
-            meetLink: googleMeetLink,
-            schedule: {
+            meetLink: data.skipCalendar ? null : googleMeetLink,
+            schedule: data.skipCalendar ? null : {
                 date: data.date,
                 time: data.time
             }

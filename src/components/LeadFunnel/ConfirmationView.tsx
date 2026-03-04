@@ -9,7 +9,7 @@ interface ConfirmationViewProps {
 
 export default function ConfirmationView({
     onClose,
-    meetLink = "https://meet.google.com/xxx-xxxx-xxx",
+    meetLink,
     coachName = "Tu Asesor(a)",
     dateTimeStr
 }: ConfirmationViewProps) {
@@ -25,18 +25,28 @@ export default function ConfirmationView({
                 </svg>
             </div>
 
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">¡Cita Confirmada!</h3>
+            <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                {dateTimeStr ? '¡Cita Confirmada!' : '¡Datos Recibidos!'}
+            </h3>
             <p className="text-white/70 text-lg mb-8 max-w-md">
-                Has agendado exitosamente tu sesión con <strong className="text-white">{coachName}</strong>. Te hemos enviado un correo con todos los detalles y el enlace oficial de la videollamada.
+                {dateTimeStr ? (
+                    <>Has agendado exitosamente tu sesión con <strong className="text-white">{coachName}</strong>. Te hemos enviado un correo con todos los detalles y el enlace oficial de la videollamada.</>
+                ) : (
+                    <>Tu información ha sido enviada exitosamente. <strong className="text-white">{coachName}</strong> te contactará muy pronto para coordinar tu sesión.</>
+                )}
             </p>
 
             <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left">
                 <div className="flex flex-col gap-4">
-                    <div>
-                        <span className="block text-xs text-white/40 uppercase tracking-widest font-bold">Cuándo</span>
-                        <span className="block text-white font-medium text-lg mt-1">{dateTimeStr || 'Revisa tu correo'}</span>
-                    </div>
-                    <div className="h-px w-full bg-white/10"></div>
+                    {dateTimeStr && (
+                        <>
+                            <div>
+                                <span className="block text-xs text-white/40 uppercase tracking-widest font-bold">Cuándo</span>
+                                <span className="block text-white font-medium text-lg mt-1">{dateTimeStr}</span>
+                            </div>
+                            <div className="h-px w-full bg-white/10"></div>
+                        </>
+                    )}
                     <div>
                         <span className="block text-xs text-white/40 uppercase tracking-widest font-bold">Con quién</span>
                         <span className="block text-white font-medium text-lg mt-1">{coachName}</span>

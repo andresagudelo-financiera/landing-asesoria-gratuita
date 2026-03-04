@@ -18,6 +18,13 @@ export const openLeadFunnel = () => {
     window.dispatchEvent(event);
 };
 
+// ==========================================
+// FEATURE TOGGLE PARA AGENDAMIENTO
+// ==========================================
+// Cambia a 'true' para permitir agendar en Google Calendar.
+// Cambia a 'false' para capturar el lead pero NO pedir fecha de reunión.
+const ENABLE_CALENDAR_SCHEDULING = false;
+
 export default function LeadFunnelContainer() {
     const [isOpen, setIsOpen] = useState(false);
     const [stage, setStage] = useState<FunnelStage>(1);
@@ -85,6 +92,36 @@ export default function LeadFunnelContainer() {
                 currency: 'USD'
             });
         }
+
+        if (ENABLE_CALENDAR_SCHEDULING) {
+            setStage(2);
+        } else {
+            handleSubmitLeadOnly(data);
+        }
+    };
+
+    const handleSubmitLeadOnly = async (data: Record<string, string>) => {
+        try {
+            const res = await fetch('/api/calendar/schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ skipCalendar: true, leadDetails: data })
+            });
+            const result = await res.json();
+
+            if (result.success && result.coach) {
+                setAssignedCoach(result.coach.name);
+            } else {
+                setAssignedCoach("Tu Asesor(a)");
+            }
+        } catch (error) {
+            console.error("Error bypassing scheduling", error);
+            setAssignedCoach("Tu Asesor(a)");
+        }
+
+        setAssignedMeetLink(null);
+        setScheduleData(null);
+        setStage(3);
     };
 
     const handleFormDisqualified = (data: Record<string, string>) => {

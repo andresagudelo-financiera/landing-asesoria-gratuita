@@ -7,58 +7,7 @@ const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4
 const CLINT_BASE_URL = 'https://api.clint.digital/v1';
 
 // Lista curada de los emails de los Coaches válidos según lo conversado (13)
-const COACH_CONFIG = [
-    // LIDER: ANDREA
-    { email: 'andrea.estrada@financieramentecu.com', leader: 'Andrea' },
-    { email: 'alexandra.perdomo@financieramentecu.com', leader: 'Andrea' },
-    { email: 'elizabeth.rojas@financieramentecu.com', leader: 'Andrea' },
-    { email: 'johana.bernal@financieramentecu.com', leader: 'Andrea' },
-    { email: 'kevin.gonzalez@financieramentecu.com', leader: 'Andrea' },
-    { email: 'monica.navarro@financieramentecu.com', leader: 'Andrea' },
-    { email: 'robinson.sanchez@financieramentecu.com', leader: 'Andrea' },
-    { email: 'viviana.huertas@financieramentecu.com', leader: 'Andrea' },
-    { email: 'yohan.espana@financieramentecu.com', leader: 'Andrea' },
-
-    // LIDER: ANA
-    { email: 'ana.mendiola@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'lina.cardona@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'luisa.rios@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'luz.pinedo@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'natalia.guerrero@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'nestor.baute@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'olga.rico@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'renier.gonzalez@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'sandy.carrillo@financieramentecu.com', leader: 'Ana Med' },
-    { email: 'sivoney.perez@financieramentecu.com', leader: 'Ana Med' },
-
-    // LIDER: JHON
-    { email: 'daniela.barrera@financieramentecu.com', leader: 'Jhon' },
-    { email: 'jhon.acevedo@financieramentecu.com', leader: 'Jhon' },
-    { email: 'bryan.rozo@financieramentecu.com', leader: 'Jhon' },
-    { email: 'diego.ruiz@financieramentecu.com', leader: 'Jhon' },
-    { email: 'john.carmona@financieramentecu.com', leader: 'Jhon' },
-    { email: 'julieta.villa@financieramentecu.com', leader: 'Jhon' },
-    { email: 'julieth.vargas@financieramentecu.com', leader: 'Jhon' },
-    { email: 'karen.camacho@financieramentecu.com', leader: 'Jhon' },
-    { email: 'lorena.martinez@financieramentecu.com', leader: 'Jhon' },
-    { email: 'marcela.espitia@financieramentecu.com', leader: 'Jhon' },
-    { email: 'mariana.narvaez@financieramentecu.com', leader: 'Jhon' },
-    { email: 'mauricio.urrea@financieramentecu.com', leader: 'Jhon' },
-    { email: 'paula.duque@financieramentecu.com', leader: 'Jhon' },
-    { email: 'yesica.montoya@financieramentecu.com', leader: 'Jhon' },
-
-    // LIDER: MALU
-    { email: 'maria.mendiola@financieramentecu.com', leader: 'Malu' },
-    { email: 'alejandra.gutierrez@financieramentecu.com', leader: 'Malu' },
-    { email: 'andrea.reyes@financieramentecu.com', leader: 'Malu' },
-    { email: 'isul.jimenez@financieramentecu.com', leader: 'Malu' },
-    { email: 'jacobo.arguello@financieramentecu.com', leader: 'Malu' },
-    { email: 'luis.castano@financieramentecu.com', leader: 'Malu' },
-    { email: 'monica.mendieta@financieramentecu.com', leader: 'Malu' },
-    { email: 'paola.roa@financieramentecu.com', leader: 'Malu' },
-    { email: 'tatiana.restrepo@financieramentecu.com', leader: 'Malu' },
-    { email: 'victoria.pelaez@financieramentecu.com', leader: 'Malu' }
-];
+import { COACH_CONFIG } from '../../../utils/coachConfig';
 
 // Import Google Calendar Logic
 import { checkCoachAvailability } from '../../../utils/googleCalendar';
@@ -93,16 +42,24 @@ export const GET: APIRoute = async ({ request }) => {
         const availableSlots: Record<string, string[]> = {};
         const today = new Date();
 
-        // Define standard slots we want to offer
-        const STANDARD_SLOTS = ['08:00', '10:00', '14:00', '16:00'];
+        // Define standard slots we want to offer (06:00 to 19:00)
+        const STANDARD_SLOTS: string[] = [];
+        for (let h = 6; h <= 19; h++) {
+            const hourStr = h.toString().padStart(2, '0');
+            STANDARD_SLOTS.push(`${hourStr}:00`);
+            if (h !== 19) {
+                STANDARD_SLOTS.push(`${hourStr}:30`);
+            }
+        }
 
-        for (let i = 1; i <= 10; i++) {
+        // Available 2 to 10 days from now
+        for (let i = 2; i <= 10; i++) {
             const nextDate = new Date(today);
             nextDate.setDate(today.getDate() + i);
             const dayOfWeek = nextDate.getDay();
 
-            // Only Monday (1) through Friday (5)
-            if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+            // Monday (1) through Saturday (6)
+            if (dayOfWeek >= 1 && dayOfWeek <= 6) {
                 const dateStr = nextDate.toISOString().split('T')[0];
                 availableSlots[dateStr] = [];
 
