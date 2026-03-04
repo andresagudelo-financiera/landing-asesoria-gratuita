@@ -155,17 +155,17 @@ export const POST: APIRoute = async ({ request }) => {
 
             // 2. Map form payload specifically to the webhook requested by the user
             const webhookPayload = {
-                name: firstName,
+                "name": firstName,
                 "last-name": lastName,
-                email: data.leadDetails.email,
-                phone: phoneNum,
-                ocupacion: data.leadDetails.experiencia || "",
-                ingreso: data.leadDetails.ingresos || "",
-                ahorro: data.leadDetails.flujo_caja || "",
-                ahorrado: data.leadDetails.capacidad_ahorro || "",
-                patrimonio: data.leadDetails.capital_liquido || "",
-                objetivo: data.leadDetails.objetivo || "",
-                coach: assignedCoach.email
+                "email": data.leadDetails.email,
+                "phone": `${ddi}${phoneNum}`,
+                "ocupacion": "none",
+                "ingreso": data.leadDetails.ingresos || "",
+                "ahorro": data.leadDetails.ahorro || "",
+                "ahorrado": data.leadDetails.ahorrado || "",
+                "patrimonio": data.leadDetails.patrimonio || "",
+                "objetivo": data.leadDetails.objetivo || "",
+                "coach": assignedCoach.email
             };
 
             debugLogs.push(`[CLINT] Sending Webhook Payload: ${JSON.stringify(webhookPayload)}`);

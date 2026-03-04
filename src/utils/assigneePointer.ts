@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
-// Store in the root of the project or a persistent volume if mounted
-const POINTER_FILE = path.resolve(process.cwd(), '.assignee_pointer.json');
-
+// Store in /tmp instead of project root to prevent Vite dev server from triggering full page reloads on file change
+const POINTER_FILE = path.join(os.tmpdir(), '.assignee_pointer.json');
 export function getAssigneePointer(): number {
     try {
         if (fs.existsSync(POINTER_FILE)) {

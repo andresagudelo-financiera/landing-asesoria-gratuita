@@ -38,7 +38,7 @@ export default function LeadFunnelContainer() {
             }
 
             // Solo resetear si ya está en la etapa 3 o 4
-            if (stage === 3 || stage === 4) {
+            if (stage === 4) {
                 setStage(1);
                 setLeadData({});
                 setScheduleData(null);

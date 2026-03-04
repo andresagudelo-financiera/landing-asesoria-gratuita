@@ -20,6 +20,7 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
     const [availableDays, setAvailableDays] = useState<DayAvailability[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [assignedCoach, setAssignedCoach] = useState<{ name: string, email: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,6 +31,11 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
                 const data = await res.json();
 
                 if (data.success && data.availability) {
+                    // Set assigned coach for UI display (first available)
+                    if (data.coaches && data.coaches.length > 0) {
+                        setAssignedCoach(data.coaches[0]);
+                    }
+
                     // Convert object mapping to DayAvailability[] array
                     const daysMapped: DayAvailability[] = Object.keys(data.availability).map(dateStr => ({
                         date: dateStr,
@@ -51,12 +57,15 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
 
     const currentSlots = selectedDate ? availableDays.find(d => d.date === selectedDate)?.slots : [];
 
-    const handleConfirm = () => {
+    const handleConfirm = (e?: React.MouseEvent) => {
+        if (e && e.preventDefault) e.preventDefault();
+
         if (selectedDate && selectedTime) {
-            setIsSubmitting(true);
             onSchedule(selectedDate, selectedTime);
+            setIsSubmitting(true);
         }
     };
+
 
     const formatDateLabel = (isoDate: string) => {
         const d = new Date(isoDate);
@@ -70,7 +79,23 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
 
             <div className="text-center mb-8">
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Selecciona tu Sesión</h3>
-                <p className="text-white/60">Elige el día y la hora que mejor se adapte a ti.</p>
+                <p className="text-white/60 mb-6">Elige el día y la hora que mejor se adapte a ti.</p>
+
+                {assignedCoach && (
+                    <div className="inline-flex items-center gap-4 bg-white/5 border border-white/10 rounded-full pr-6 pl-2 py-2 shadow-lg mb-4 animate-in slide-in-from-bottom-4">
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-claudia-accent-green bg-claudia-dark/50 flex-shrink-0">
+                            <img
+                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(assignedCoach.name.replace('.', ' '))}&background=C6FF00&color=051c2c&size=128&bold=true`}
+                                alt={assignedCoach.name}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div className="text-left flex flex-col justify-center">
+                            <span className="text-xs text-claudia-accent-green uppercase tracking-wide font-bold">Tu Coach Asignado</span>
+                            <span className="text-white font-medium capitalize text-sm">{assignedCoach.name.toLowerCase().replace('.', ' ')}</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {isLoading ? (
@@ -88,6 +113,7 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
                             {availableDays.map(day => (
                                 <button
                                     key={day.date}
+                                    type="button"
                                     onClick={() => {
                                         setSelectedDate(day.date);
                                         setSelectedTime(null);
@@ -125,6 +151,7 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
                                     currentSlots?.map(slot => (
                                         <button
                                             key={slot.time}
+                                            type="button"
                                             disabled={!slot.available}
                                             onClick={() => setSelectedTime(slot.time)}
                                             className={`py-2 px-4 rounded-lg border-2 transition-all ${!slot.available
@@ -145,16 +172,10 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
             )}
 
             {/* Navegación */}
-            <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6">
-                <button
-                    onClick={onBack}
-                    disabled={isSubmitting}
-                    className="px-6 py-2 rounded-full font-bold uppercase text-sm tracking-wider text-white/60 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50"
-                >
-                    Atrás
-                </button>
+            <div className="mt-8 flex items-center justify-end border-t border-white/10 pt-6">
 
                 <button
+                    type="button"
                     onClick={handleConfirm}
                     disabled={!selectedDate || !selectedTime || isSubmitting}
                     className="relative px-8 py-3 bg-claudia-accent-green text-claudia-dark rounded-full font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed"

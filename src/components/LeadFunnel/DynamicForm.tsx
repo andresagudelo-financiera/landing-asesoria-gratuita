@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { funnelConfig } from './formConfig';
 import type { Question } from './formConfig';
 
@@ -37,10 +39,12 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
         }
 
         if (question.type === 'tel') {
-            // Permite +, números, espacios, guiones y paréntesis entre 7 y 20 caracteres
-            const phoneRegex = /^\+?[0-9\s()\-]{7,20}$/;
-            if (!phoneRegex.test(answer.trim())) {
-                setError('Por favor, ingresa un número de teléfono válido.');
+            // react-phone-input-2 ya nos da el formato con el + incluido si lo configuramos bien, pero validamos longitud básica
+            // Quitar espacios y guiones para validar solo números y el +
+            const cleanPhone = answer.replace(/[\s-]/g, '');
+            const phoneRegex = /^\+[0-9]{7,15}$/;
+            if (!phoneRegex.test(cleanPhone)) {
+                setError('Por favor, ingresa un número de teléfono válido con su indicativo.');
                 return;
             }
         }
@@ -148,7 +152,7 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                             </div>
                         )}
 
-                        {(question.type === 'text' || question.type === 'email' || question.type === 'tel') && (
+                        {(question.type === 'text' || question.type === 'email') && (
                             <div className="flex flex-col gap-2">
                                 <input
                                     type={question.type}
@@ -158,6 +162,127 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                                     onKeyDown={handleKeyDown}
                                     placeholder={question.placeholder}
                                     className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-white text-lg focus:outline-none focus:border-claudia-accent-green focus:bg-white/10 transition-all placeholder:text-white/30"
+                                />
+                            </div>
+                        )}
+
+                        {question.type === 'tel' && (
+                            <div className="flex flex-col gap-2 phone-input-container">
+                                <style>{`
+                                    .react-tel-input .form-control {
+                                        width: 100%;
+                                        height: 64px;
+                                        background-color: rgba(255, 255, 255, 0.05);
+                                        border: 2px solid rgba(255, 255, 255, 0.1);
+                                        border-radius: 0.75rem;
+                                        padding-left: 74px;
+                                        color: white;
+                                        font-size: 1.125rem;
+                                        transition: all 0.2s;
+                                    }
+                                    .react-tel-input .form-control:focus {
+                                        border-color: #C6FF00;
+                                        background-color: rgba(255, 255, 255, 0.1);
+                                        box-shadow: none;
+                                    }
+                                    .react-tel-input .flag-dropdown {
+                                        background-color: rgba(255, 255, 255, 0.05); /* Same as input to avoid white edges */
+                                        border: none;
+                                        border-right: 2px solid rgba(255, 255, 255, 0.1);
+                                        border-radius: 0.75rem 0 0 0.75rem;
+                                        width: 60px;
+                                    }
+                                    .react-tel-input .flag-dropdown:hover, 
+                                    .react-tel-input .flag-dropdown:focus,
+                                    .react-tel-input .flag-dropdown.open {
+                                        background-color: rgba(255, 255, 255, 0.08); /* Slightly lighter for hover/active state */
+                                        border-radius: 0.75rem 0 0 0.75rem;
+                                    }
+                                    .react-tel-input .flag-dropdown.open .selected-flag {
+                                        background-color: transparent;
+                                    }
+                                    .react-tel-input .selected-flag {
+                                        padding-left: 14px;
+                                        width: 60px;
+                                        border-radius: 0.75rem 0 0 0.75rem;
+                                        background-color: transparent;
+                                    }
+                                    .react-tel-input .selected-flag .arrow {
+                                        left: 40px;
+                                    }
+                                    .react-tel-input .selected-flag:hover, 
+                                    .react-tel-input .selected-flag:focus {
+                                        background-color: transparent;
+                                    }
+                                    .react-tel-input .country-list {
+                                        background-color: #1a1a1a;
+                                        color: white;
+                                        border: 1px solid rgba(255, 255, 255, 0.1);
+                                        border-radius: 0.5rem;
+                                        margin-top: 8px;
+                                    }
+                                    .react-tel-input .country-list .country:hover,
+                                    .react-tel-input .country-list .country.highlight {
+                                        background-color: rgba(255, 255, 255, 0.1);
+                                    }
+                                    .react-tel-input .country-list .search {
+                                        background-color: #1a1a1a;
+                                        padding: 10px 14px;
+                                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                                    }
+                                    .react-tel-input .country-list .search-box {
+                                        background-color: rgba(255, 255, 255, 0.05);
+                                        border: 1px solid rgba(255, 255, 255, 0.1);
+                                        color: white;
+                                        border-radius: 4px;
+                                        width: 100%;
+                                        padding: 8px 12px;
+                                        margin-left: 0;
+                                    }
+                                    .react-tel-input .country-list .search-box::placeholder {
+                                        color: rgba(255, 255, 255, 0.4);
+                                    }
+                                    .react-tel-input .form-control::placeholder {
+                                        color: rgba(255, 255, 255, 0.3);
+                                    }
+                                    .react-tel-input .flag-dropdown.open {
+                                        background-color: rgba(255, 255, 255, 0.05);
+                                        border-radius: 0.75rem 0 0 0.75rem;
+                                    }
+                                `}</style>
+                                <PhoneInput
+                                    country={'co'} // Default a Colombia
+                                    value={answers[question.id] || ''}
+                                    countryCodeEditable={false}
+                                    onChange={(phone, countryData: any) => {
+                                        // Formatear como pide Clint: +yy xxxxxxxx
+                                        // PhoneInput nos da '573001234567' (sin el + ni espacios)
+                                        // Extraemos el código de país y el resto del número
+                                        if (!phone) {
+                                            setAnswers(prev => ({ ...prev, [question.id]: '' }));
+                                            return;
+                                        }
+
+                                        const dialCode = countryData?.dialCode || '';
+                                        let cleanPhoneString = phone;
+
+                                        // Si el teléfono empieza con el código de país, lo separamos con un espacio
+                                        if (dialCode && cleanPhoneString.startsWith(dialCode)) {
+                                            const numberPart = cleanPhoneString.substring(dialCode.length);
+                                            cleanPhoneString = `+${dialCode} ${numberPart}`;
+                                        } else {
+                                            cleanPhoneString = `+${cleanPhoneString}`;
+                                        }
+
+                                        setAnswers(prev => ({ ...prev, [question.id]: cleanPhoneString }));
+                                        if (error) setError('');
+                                    }}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder={question.placeholder || 'Ej: 300 123 4567'}
+                                    enableSearch={true}
+                                    searchPlaceholder="Buscar por país..."
+                                    searchNotFound="País no encontrado"
+                                    masks={{ co: '... ... ....' }}
                                 />
                             </div>
                         )}
@@ -173,6 +298,7 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
             {/* Navigation Buttons */}
             <div className="mt-12 flex items-center justify-between border-t border-white/10 pt-6">
                 <button
+                    type="button"
                     onClick={handlePrevious}
                     disabled={currentStepIndex === 0 || isTransitioning}
                     className={`px-6 py-2 rounded-full font-bold uppercase text-sm tracking-wider transition-colors ${currentStepIndex === 0 ? 'text-white/20 cursor-not-allowed' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
@@ -183,6 +309,7 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                 {/* Solo mostrar botón Siguiente para inputs de texto, para choice se auto-avanza */}
                 {question.type !== 'single-choice' && (
                     <button
+                        type="button"
                         onClick={() => handleNext()}
                         disabled={isTransitioning}
                         className="px-8 py-3 bg-claudia-accent-green text-claudia-dark rounded-full font-bold uppercase tracking-wider hover:scale-105 hover:shadow-[0_0_20px_rgba(198,255,0,0.3)] transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
