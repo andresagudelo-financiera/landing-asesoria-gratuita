@@ -12,8 +12,7 @@ const {
 import "../styles/global.css";
 
 const ogImage = "/og-image.jpg";
-// Obtener la URL base dinámicamente según dónde estemos (localhost, DigitalOcean, o el dominio real)
-const siteUrl = Astro.url.origin;
+const siteUrl = "https://financieramentecompany.com";
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
 
 // JSON-LD: Organization
