@@ -43,10 +43,25 @@ export default function NumberChecker() {
         });
 
         if (foundCoach) {
+            // Evento GA4: número válido
+            if (typeof window !== 'undefined' && (window as any).trackEvent) {
+                (window as any).trackEvent('number_check', {
+                    result: 'valid',
+                    coach_name: foundCoach.name,
+                    phone_checked: cleanNumber
+                });
+            }
             setResult(foundCoach);
             // Redirigir a éxito
             window.location.href = `/numero-valido?name=${encodeURIComponent(foundCoach.name)}&phone=${encodeURIComponent(foundCoach.phone)}&link=${encodeURIComponent(foundCoach.whatsappLink)}`;
         } else {
+            // Evento GA4: número inválido
+            if (typeof window !== 'undefined' && (window as any).trackEvent) {
+                (window as any).trackEvent('number_check', {
+                    result: 'invalid',
+                    phone_checked: cleanNumber
+                });
+            }
             // Redirigir a error
             window.location.href = '/numero-invalido';
         }
