@@ -10,7 +10,7 @@ interface ConfirmationViewProps {
 export default function ConfirmationView({
     onClose,
     meetLink,
-    coachName = "Tu Asesor(a)",
+    coachName = "Tu Money Strategist(a)",
     dateTimeStr
 }: ConfirmationViewProps) {
 

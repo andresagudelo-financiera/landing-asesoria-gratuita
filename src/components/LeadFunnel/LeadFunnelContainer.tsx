@@ -112,11 +112,11 @@ export default function LeadFunnelContainer() {
             if (result.success && result.coach) {
                 setAssignedCoach(result.coach.name);
             } else {
-                setAssignedCoach("Tu Asesor(a)");
+                setAssignedCoach("Tu Money Strategist(a)");
             }
         } catch (error) {
             console.error("Error bypassing scheduling", error);
-            setAssignedCoach("Tu Asesor(a)");
+            setAssignedCoach("Tu Money Strategist(a)");
         }
 
         setAssignedMeetLink(null);
@@ -159,11 +159,11 @@ export default function LeadFunnelContainer() {
                 setAssignedCoach(data.coach.name);
                 setAssignedMeetLink(data.meetLink);
             } else {
-                setAssignedCoach("Tu Asesor(a)");
+                setAssignedCoach("Tu Money Strategist(a)");
             }
         } catch (error) {
             console.error("Error scheduling", error);
-            setAssignedCoach("Tu Asesor(a)");
+            setAssignedCoach("Tu Money Strategist(a)");
         }
 
         setScheduleData({ date, time });
@@ -230,7 +230,7 @@ export default function LeadFunnelContainer() {
                     {stage === 3 && (
                         <ConfirmationView
                             onClose={() => setIsOpen(false)}
-                            coachName={assignedCoach || "Tu Asesor(a)"}
+                            coachName={assignedCoach || "Tu Money Strategist(a)"}
                             dateTimeStr={scheduleData ? `${scheduleData.date} a las ${scheduleData.time}` : ''}
                             meetLink={assignedMeetLink || undefined}
                         />

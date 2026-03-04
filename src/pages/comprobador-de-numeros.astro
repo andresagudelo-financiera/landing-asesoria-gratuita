@@ -1,0 +1,43 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import NumberChecker from "../components/NumberChecker/NumberChecker";
+import "../styles/global.css";
+---
+
+<MainLayout title="Comprobador de Números | Finanzas con Claudia Uribe">
+    <div
+        class="relative min-h-screen w-full flex items-center justify-center md:justify-start overflow-hidden"
+    >
+        <!-- Image de Fondo -->
+        <div
+            class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+            style={`background-image: url('/black_v2.webp');`}
+        >
+            <!-- Overlay para asegurar legibilidad -->
+            <div class="absolute inset-0 bg-black/40 md:bg-black/20"></div>
+        </div>
+
+        <!-- Contenedor del Formulario -->
+        <div class="relative z-10 w-full max-w-xl md:ml-[8%] px-6 py-12">
+            <div class="text-center md:text-left mb-8">
+                <h1
+                    class="text-4xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-xl"
+                >
+                    Comprobador de Números
+                </h1>
+                <p
+                    class="text-lg md:text-xl text-gray-100 drop-shadow-lg font-medium"
+                >
+                    Asegúrate de estar hablando con un Money Strategist oficial
+                    del equipo de Claudia Uribe.
+                </p>
+            </div>
+
+            <div
+                class="transform hover:scale-[1.01] transition-transform duration-300"
+            >
+                <NumberChecker client:load />
+            </div>
+        </div>
+    </div>
+</MainLayout>

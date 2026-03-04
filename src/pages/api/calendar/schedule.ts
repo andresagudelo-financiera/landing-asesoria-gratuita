@@ -164,7 +164,7 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({
             success: true,
             coach: {
-                name: `${assignedCoach.first_name || ''} ${assignedCoach.last_name || ''}`.trim() || 'Tu Asesor(a)',
+                name: `${assignedCoach.first_name || ''} ${assignedCoach.last_name || ''}`.trim() || 'Tu Money Strategist(a)',
                 email: assignedCoach.email
             },
             meetLink: data.skipCalendar ? null : googleMeetLink,
