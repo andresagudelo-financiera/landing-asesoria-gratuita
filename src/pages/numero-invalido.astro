@@ -1,10 +1,22 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
+
+const phone = Astro.url.searchParams.get("phone") || "";
 ---
 
-<MainLayout title="Número No Válido | Finanzas con Claudia Uribe">
+<script>
+    // Track failed number verification
+    if (typeof window !== "undefined" && "gtag" in window) {
+        (window as any).gtag("event", "invalid_number_verification", {
+            event_category: "validation",
+            event_label: "phone_number_invalid",
+        });
+    }
+</script>
+
+<MainLayout title="Número Inválido ⚠️ | Finanzas con Claudia Uribe">
     <main
-        class="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden"
+        class="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center p-4 relative overflow-hidden"
     >
         <!-- Image de Fondo -->
         <div

@@ -23,7 +23,7 @@ export const openLeadFunnel = () => {
 // ==========================================
 // Cambia a 'true' para permitir agendar en Google Calendar.
 // Cambia a 'false' para capturar el lead pero NO pedir fecha de reunión.
-const ENABLE_CALENDAR_SCHEDULING = false;
+const ENABLE_CALENDAR_SCHEDULING = true;
 
 export default function LeadFunnelContainer() {
     const [isOpen, setIsOpen] = useState(false);

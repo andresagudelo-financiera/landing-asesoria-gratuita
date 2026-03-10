@@ -10,6 +10,7 @@ const {
 } = Astro.props;
 
 import "../styles/global.css";
+import LeadFunnelContainer from "../components/LeadFunnel/LeadFunnelContainer";
 
 const ogImage = "/og-image.jpg";
 const siteUrl = "https://financieramentecompany.com";
@@ -315,5 +316,6 @@ const serviceSchema = {
   </head>
   <body class="min-h-screen">
     <slot />
+    <LeadFunnelContainer client:load />
   </body>
 </html>

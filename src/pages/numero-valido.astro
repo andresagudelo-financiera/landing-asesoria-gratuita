@@ -7,6 +7,16 @@ const phone = Astro.url.searchParams.get("phone") || "";
 const link = Astro.url.searchParams.get("link") || "#";
 ---
 
+<script>
+    // Track successful number verification
+    if (typeof window !== "undefined" && "gtag" in window) {
+        (window as any).gtag("event", "valid_number_verification", {
+            event_category: "validation",
+            event_label: "phone_number_valid",
+        });
+    }
+</script>
+
 <MainLayout title="Número Verificado | Finanzas con Claudia Uribe">
     <main
         class="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden"

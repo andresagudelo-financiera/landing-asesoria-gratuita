@@ -1,0 +1,86 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import ProfileCalculator from "../components/ProfileCalculator/ProfileCalculator";
+---
+
+<MainLayout title="Calculadora de Perfil de Inversión | Financieramente">
+    <main
+        class="min-h-screen bg-gray-50 flex items-center justify-center pt-24 pb-12 px-4 selection:bg-blue-100 selection:text-blue-900"
+    >
+        <div class="w-full max-w-4xl mx-auto">
+            <div
+                class="text-center mb-10 max-w-2xl mx-auto px-4 animate-fade-in-up"
+            >
+                <h1
+                    class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight"
+                >
+                    Descubre cómo deberías invertir <span class="text-blue-600"
+                        >realmente</span
+                    >
+                </h1>
+                <p class="text-xl text-gray-600">
+                    Responde estas 14 preguntas sin jerga bancaria para conocer
+                    tu nivel de riesgo, tu perfil ideal recomendado por nuestra
+                    matriz Financieramente. Si aún no es tu momento de invertir,
+                    te daremos un plan de acción de 90 días exacto.
+                </p>
+            </div>
+
+            <div
+                class="bg-white rounded-3xl shadow-xl shadow-blue-900/5 overflow-hidden border border-gray-100"
+            >
+                <ProfileCalculator client:load />
+            </div>
+
+            <div
+                class="mt-8 text-center text-sm text-gray-500 max-w-xl mx-auto flex items-center justify-center gap-2"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="flex-shrink-0"
+                    ><rect width="18" height="11" x="3" y="11" rx="2" ry="2"
+                    ></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg
+                >
+                Tus datos son anónimos y la evaluación sigue normativas de idoneidad
+                internacionales (MiFID II) y locales (Decreto 661/2018).
+            </div>
+        </div>
+    </main>
+
+    <style>
+        /* Custom simple animations just for this page so it feels premium */
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</MainLayout>
