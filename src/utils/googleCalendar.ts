@@ -1,5 +1,34 @@
 
 
+export async function getCoachesAvailability(coachEmails: string[], startDateISO: string, endDateISO: string): Promise<Record<string, any[]>> {
+    const accessToken = await getGoogleAccessToken();
+
+    const response = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            timeMin: startDateISO,
+            timeMax: endDateISO,
+            items: coachEmails.map(email => ({ id: email })),
+            timeZone: 'America/Bogota'
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`FreeBusy check failed: ${response.status} - ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    const result: Record<string, any[]> = {};
+    for (const email of coachEmails) {
+        result[email] = data.calendars[email]?.busy || [];
+    }
+    return result;
+}
+
 export async function checkCoachAvailability(coachEmail: string, dateStr: string): Promise<any[]> {
     const accessToken = await getGoogleAccessToken();
 
@@ -88,9 +117,9 @@ export async function createGoogleMeetEvent(coachEmail: string, studentEmail: st
     return await response.json();
 }
 
-const CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
-const REFRESH_TOKEN = import.meta.env.GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_REFRESH_TOKEN;
+const CLIENT_ID = import.meta.env?.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+const CLIENT_SECRET = import.meta.env?.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+const REFRESH_TOKEN = import.meta.env?.GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_REFRESH_TOKEN;
 const REDIRECT_URI = 'https://developers.google.com/oauthplayground';
 
 let currentAccessToken = '';

@@ -146,12 +146,12 @@ export default function LeadFunnelContainer() {
         }
     };
 
-    const handleSchedule = async (date: string, time: string) => {
+    const handleSchedule = async (date: string, time: string, coachEmail: string) => {
         try {
             const res = await fetch('/api/calendar/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, time, leadDetails: leadData })
+                body: JSON.stringify({ date, time, coachEmail, leadDetails: leadData })
             });
             const data = await res.json();
 

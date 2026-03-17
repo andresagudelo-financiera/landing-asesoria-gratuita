@@ -1,0 +1,23 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import CalendarPicker from '../components/LeadFunnel/CalendarPicker';
+
+export const prerender = false;
+---
+
+<MainLayout title="Test Calendario - Andrea Estrada">
+    <div class="min-h-screen bg-claudia-secondary flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-claudia-secondary border border-claudia-accent-orange/20 rounded-3xl p-6 shadow-xl">
+            <h1 class="text-2xl font-bold text-white mb-6 text-center">Prueba de Calendario (Andrea Estrada)</h1>
+            
+            <CalendarPicker 
+                client:load 
+                apiUrl="/api/calendar/availability-andrea"
+                onSchedule={(date: string, time: string, coach: string) => {
+                    alert(`Agendado: ${date} a las ${time} con ${coach}`);
+                }}
+                onBack={() => alert('Atrás')}
+            />
+        </div>
+    </div>
+</MainLayout>

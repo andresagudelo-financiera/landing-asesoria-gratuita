@@ -45,8 +45,9 @@ export const POST: APIRoute = async ({ request }) => {
         const clintUsers = await clintRes.json();
         const usersArray = clintUsers.data || clintUsers;
 
-        // 2. Filter only valid coaches, forcing the order of COACH_CONFIG, merging with Clint User IDs
+        // 2. Filter only valid & active coaches, forcing the order of COACH_CONFIG, merging with Clint User IDs
         const coaches = COACH_CONFIG
+            .filter(config => config.active !== false)
             .map(config => {
                 const clintUser = usersArray.find((user: any) => user.email?.toLowerCase() === config.email);
                 if (clintUser) {
@@ -58,17 +59,26 @@ export const POST: APIRoute = async ({ request }) => {
 
         if (coaches.length === 0) throw new Error('No valid coaches available in Clint');
 
-        // 2. Lógica ROUND-ROBIN con persistencia
-        let pointer = getAssigneePointer();
+        // 2. Lógica de Asignación (Recibir coach o usar Round-Robin como fallback)
+        let assignedCoach = coaches[0]; // Default
+        const requestedCoachEmail = data.coachEmail;
 
-        // Safety check if pointer got out of bounds (e.g., coach removed)
-        if (pointer >= coaches.length) {
-            pointer = 0;
+        let pointer = getAssigneePointer();
+        if (pointer >= coaches.length) pointer = 0;
+
+        if (requestedCoachEmail) {
+            const matchedCoach = coaches.find((c: any) => c.email?.toLowerCase() === requestedCoachEmail.toLowerCase());
+            if (matchedCoach) {
+                assignedCoach = matchedCoach;
+            } else {
+                console.warn(`Requested coach ${requestedCoachEmail} not found, falling back to Round-Robin`);
+                assignedCoach = coaches[pointer];
+            }
+        } else {
+            assignedCoach = coaches[pointer];
         }
 
-        const assignedCoach = coaches[pointer];
-
-        // Save the next pointer
+        // Avanzar el puntero Round-Robin habitual para mantener la rotación
         saveAssigneePointer((pointer + 1) % coaches.length);
 
         let debugLogs = [];

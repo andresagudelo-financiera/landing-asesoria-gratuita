@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
 interface CalendarPickerProps {
-    onSchedule: (date: string, time: string) => void;
+    onSchedule: (date: string, time: string, coachEmail: string) => void;
     onBack: () => void;
+    apiUrl?: string; // Endpoint opcional para pruebas
 }
 
 // Interfaz temporal para mockear los datos
 interface TimeSlot {
     time: string; // ej. "09:00"
     available: boolean;
+    coach?: string; // Email del coach
 }
 
 interface DayAvailability {
@@ -16,7 +18,7 @@ interface DayAvailability {
     slots: TimeSlot[];
 }
 
-export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerProps) {
+export default function CalendarPicker({ onSchedule, onBack, apiUrl }: CalendarPickerProps) {
     const [availableDays, setAvailableDays] = useState<DayAvailability[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
     useEffect(() => {
         const fetchAvailability = async () => {
             try {
-                const res = await fetch('/api/calendar/availability');
+                const res = await fetch(apiUrl || '/api/calendar/availability');
                 const data = await res.json();
 
                 if (data.success && data.availability) {
@@ -36,10 +38,14 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
                         setAssignedCoach(data.coaches[0]);
                     }
 
-                    // Convert object mapping to DayAvailability[] array
+                     // Convert object mapping to DayAvailability[] array
                     const daysMapped: DayAvailability[] = Object.keys(data.availability).map(dateStr => ({
                         date: dateStr,
-                        slots: data.availability[dateStr].map((time: string) => ({ time, available: true }))
+                        slots: data.availability[dateStr].map((item: any) => ({
+                            time: item.time,
+                            available: true,
+                            coach: item.coach
+                        }))
                     }));
                     setAvailableDays(daysMapped);
                 } else {
@@ -59,9 +65,17 @@ export default function CalendarPicker({ onSchedule, onBack }: CalendarPickerPro
 
     const handleConfirm = (e?: React.MouseEvent) => {
         if (e && e.preventDefault) e.preventDefault();
-
+        
         if (selectedDate && selectedTime) {
-            onSchedule(selectedDate, selectedTime);
+            const currentSlots = availableDays.find(d => d.date === selectedDate)?.slots || [];
+            const slot = currentSlots.find(s => s.time === selectedTime);
+            
+            if (slot && slot.coach) {
+                onSchedule(selectedDate, selectedTime, slot.coach);
+            } else {
+                console.error("No coach found for slot");
+                // Fallback o manejo de error opcional
+            }
             setIsSubmitting(true);
         }
     };

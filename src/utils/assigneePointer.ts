@@ -2,8 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-// Store in /tmp instead of project root to prevent Vite dev server from triggering full page reloads on file change
-const POINTER_FILE = path.join(os.tmpdir(), '.assignee_pointer.json');
+// Store in /tmp for development to prevent Vite reloads, but use process.cwd() for production persistence (Droplet)
+const isProd = import.meta.env?.PROD === true || process.env.NODE_ENV === 'production';
+const POINTER_FILE = isProd
+    ? path.join(process.cwd(), '.assignee_pointer.json')
+    : path.join(os.tmpdir(), '.assignee_pointer.json');
 export function getAssigneePointer(): number {
     try {
         if (fs.existsSync(POINTER_FILE)) {

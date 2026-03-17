@@ -1,4 +1,4 @@
-// src/pages/api/calendar/availability.ts
+// src/pages/api/calendar/availability-andrea.ts
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
@@ -6,7 +6,6 @@ import type { APIRoute } from 'astro';
 const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4eVYOXuSv4BRdBTeDEgswf2I7Ym6tw==';
 const CLINT_BASE_URL = 'https://api.clint.digital/v1';
 
-// Lista curada de los emails de los Coaches válidos según lo conversado (13)
 import { COACH_CONFIG } from '../../../utils/coachConfig';
 
 // Import Google Calendar Logic
@@ -29,20 +28,12 @@ export const GET: APIRoute = async ({ request }) => {
         }
 
         const clintUsers = await clintRes.json();
+        const usersArray = clintUsers.data || clintUsers;
 
-        const usersArray = clintUsers.data || clintUsers; // Manejar si viene en .data o directo
-
-        // 2. Filter only valid & active coaches, preserving COACH_CONFIG order (interleaved)
-        const coaches = COACH_CONFIG
-            .filter(config => config.active !== false)
-            .map(config => {
-                const clintUser = usersArray.find((user: any) => user.email?.toLowerCase() === config.email.toLowerCase());
-                if (clintUser) {
-                    return { ...clintUser, configLeader: config.leader };
-                }
-                return null;
-            })
-            .filter(Boolean);
+        // 2. Filter ONLY Andrea Estrada for testing
+        const coaches = usersArray.filter((user: any) =>
+            user.email && user.email.toLowerCase() === 'andrea.estrada@financieramentecu.com'
+        );
 
         // 3. Calendar Availability Logic
         const availableSlots: Record<string, { time: string, coach: string }[]> = {};
@@ -78,18 +69,16 @@ export const GET: APIRoute = async ({ request }) => {
             nextDate.setDate(today.getDate() + i);
             const dayOfWeek = nextDate.getDay();
 
-            // Monday (1) through Saturday (6)
             if (dayOfWeek >= 1 && dayOfWeek <= 6) {
                 const dateStr = nextDate.toISOString().split('T')[0];
                 availableSlots[dateStr] = [];
 
                 for (const slot of STANDARD_SLOTS) {
                     const slotStart = new Date(`${dateStr}T${slot}:00-05:00`).getTime();
-                    const slotEnd = slotStart + 30 * 60 * 1000; // 30 min slot
+                    const slotEnd = slotStart + 30 * 60 * 1000;
 
                     let assignedCoachEmail = null;
 
-                    // Loop coaches starting from pointer to find the first FREE coach for this slot
                     for (let cIdx = 0; cIdx < coaches.length; cIdx++) {
                         const currentIdx = (basePointer + cIdx) % coaches.length;
                         const potentialCoach = coaches[currentIdx];
@@ -103,7 +92,7 @@ export const GET: APIRoute = async ({ request }) => {
 
                         if (!isBusy) {
                             assignedCoachEmail = potentialCoach.email;
-                            break; // Found free coach!
+                            break;
                         }
                     }
 
@@ -125,16 +114,11 @@ export const GET: APIRoute = async ({ request }) => {
             availability: availableSlots
         }), {
             status: 200,
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         });
 
     } catch (error: any) {
-        return new Response(JSON.stringify({
-            success: false,
-            error: error.message || 'Error fetching availability'
-        }), {
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
