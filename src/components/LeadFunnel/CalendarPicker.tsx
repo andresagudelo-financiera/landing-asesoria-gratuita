@@ -128,23 +128,30 @@ export default function CalendarPicker({ onSchedule, onBack, apiUrl }: CalendarP
                     <div className="flex-1">
                         <h4 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Fechas Disponibles</h4>
                         <div className="grid grid-cols-2 gap-3">
-                            {availableDays.map(day => (
-                                <button
-                                    key={day.date}
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedDate(day.date);
-                                        setSelectedTime(null);
-                                    }}
-                                    className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center ${selectedDate === day.date
-                                        ? 'border-claudia-accent-green bg-claudia-accent-green/10 text-claudia-accent-green shadow-[0_0_15px_rgba(198,255,0,0.2)]'
-                                        : 'border-white/10 bg-white/5 text-white hover:border-white/30 hover:bg-white/10'
+                            {availableDays.map(day => {
+                                const hasSlots = day.slots && day.slots.length > 0;
+                                return (
+                                    <button
+                                        key={day.date}
+                                        type="button"
+                                        disabled={!hasSlots}
+                                        onClick={() => {
+                                            setSelectedDate(day.date);
+                                            setSelectedTime(null);
+                                        }}
+                                        className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center ${
+                                            !hasSlots
+                                                ? 'opacity-40 cursor-not-allowed border-transparent bg-white/5 text-white/30'
+                                                : selectedDate === day.date
+                                                    ? 'border-claudia-accent-green bg-claudia-accent-green/10 text-claudia-accent-green shadow-[0_0_15px_rgba(198,255,0,0.2)]'
+                                                    : 'border-white/10 bg-white/5 text-white hover:border-white/30 hover:bg-white/10'
                                         }`}
-                                >
-                                    <span className="capitalize font-medium text-lg">{formatDateLabel(day.date).split(',')[0]}</span>
-                                    <span className="text-xs opacity-70 mt-1">{formatDateLabel(day.date).split(',')[1]}</span>
-                                </button>
-                            ))}
+                                    >
+                                        <span className="capitalize font-medium text-lg">{formatDateLabel(day.date).split(',')[0]}</span>
+                                        <span className="text-xs opacity-70 mt-1">{formatDateLabel(day.date).split(',')[1]}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
