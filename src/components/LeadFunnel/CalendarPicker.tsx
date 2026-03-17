@@ -29,7 +29,11 @@ export default function CalendarPicker({ onSchedule, onBack, apiUrl }: CalendarP
     useEffect(() => {
         const fetchAvailability = async () => {
             try {
-                const res = await fetch(apiUrl || '/api/calendar/availability');
+                const baseUrl = apiUrl || '/api/calendar/availability';
+                const separator = baseUrl.includes('?') ? '&' : '?';
+                const res = await fetch(`${baseUrl}${separator}t=${Date.now()}`, {
+                    cache: 'no-store'
+                });
                 const data = await res.json();
 
                 if (data.success && data.availability) {
