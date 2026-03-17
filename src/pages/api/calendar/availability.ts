@@ -50,16 +50,12 @@ export const GET: APIRoute = async ({ request }) => {
 
         // Define standard slots we want to offer (06:00 to 19:00)
         const STANDARD_SLOTS: string[] = [];
-        let currentMinutes = 6 * 60; // 6:00 AM
-        const endMinutes = 19 * 60; // 7:00 PM
-
-        while (currentMinutes + 45 <= endMinutes) {
-            const h = Math.floor(currentMinutes / 60);
-            const m = currentMinutes % 60;
+        for (let h = 6; h <= 19; h++) {
             const hourStr = h.toString().padStart(2, '0');
-            const minStr = m.toString().padStart(2, '0');
-            STANDARD_SLOTS.push(`${hourStr}:${minStr}`);
-            currentMinutes += 45;
+            STANDARD_SLOTS.push(`${hourStr}:00`);
+            if (h !== 19) {
+                STANDARD_SLOTS.push(`${hourStr}:30`);
+            }
         }
 
         const startForApi = new Date(today);
@@ -89,7 +85,7 @@ export const GET: APIRoute = async ({ request }) => {
 
                 for (const slot of STANDARD_SLOTS) {
                     const slotStart = new Date(`${dateStr}T${slot}:00-05:00`).getTime();
-                    const slotEnd = slotStart + 45 * 60 * 1000; // 45 min slot
+                    const slotEnd = slotStart + 30 * 60 * 1000; // 30 min slot
 
                     let assignedCoachEmail = null;
 
