@@ -66,8 +66,8 @@ export async function createGoogleMeetEvent(coachEmail: string, studentEmail: st
     const startTimeStr = `${date}T${time}:00-05:00`;
     const startDate = new Date(startTimeStr);
 
-    // Add 30 minutes for duration
-    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+    // Add 45 minutes for duration
+    const endDate = new Date(startDate.getTime() + 45 * 60 * 1000);
 
     const eventPayload = {
         summary: `Asesoría Gratuita - ${studentName}`,
