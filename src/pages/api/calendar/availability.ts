@@ -12,6 +12,7 @@ import { COACH_CONFIG } from '../../../utils/coachConfig';
 // Import Google Calendar Logic
 import { getCoachesAvailability } from '../../../utils/googleCalendar';
 import { getAssigneePointer } from '../../../utils/assigneePointer';
+import { isColombiaHoliday } from '../../../utils/colombiaHolidays';
 
 export const GET: APIRoute = async ({ request }) => {
     try {
@@ -80,7 +81,17 @@ export const GET: APIRoute = async ({ request }) => {
 
             // Monday (1) through Saturday (6)
             if (dayOfWeek >= 1 && dayOfWeek <= 6) {
-                const dateStr = nextDate.toISOString().split('T')[0];
+                const dateStr = [
+                    nextDate.getFullYear(),
+                    String(nextDate.getMonth() + 1).padStart(2, '0'),
+                    String(nextDate.getDate()).padStart(2, '0')
+                ].join('-');
+
+                if (isColombiaHoliday(dateStr)) {
+                    availableSlots[dateStr] = [];
+                    continue;
+                }
+
                 availableSlots[dateStr] = [];
 
                 for (const slot of STANDARD_SLOTS) {

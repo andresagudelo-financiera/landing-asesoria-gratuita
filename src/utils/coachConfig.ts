@@ -17,7 +17,7 @@ const teamAndrea: CoachConfig[] = [
     { email: 'alexandra.perdomo@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: true },
     { email: 'elizabeth.rojas@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: true },
     { email: 'johana.bernal@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: true },
-    { email: 'kevin.gonzalez@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: true },
+    { email: 'kevin.gonzalez@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: false },
     { email: 'monica.navarro@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: true },
     { email: 'robinson.sanchez@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: true },
     { email: 'viviana.huertas@financieramentecu.com', leader: LEADERS.ANDREA, webhook: 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43', active: true },

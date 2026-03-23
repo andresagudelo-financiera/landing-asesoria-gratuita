@@ -24,6 +24,30 @@ export const openLeadFunnel = () => {
 // Cambia a 'true' para permitir agendar en Google Calendar.
 // Cambia a 'false' para capturar el lead pero NO pedir fecha de reunión.
 const ENABLE_CALENDAR_SCHEDULING = true;
+const getSavedUTMs = (): Record<string, string> => {
+    if (typeof window === 'undefined') return {};
+    
+    // 1. Priorizar parámetros de la URL actual
+    const params = new URLSearchParams(window.location.search);
+    const utms: Record<string, string> = {};
+    for (const [key, value] of params.entries()) {
+        if (key.startsWith("utm_") || key === "type" || key === "coach") {
+            utms[key] = value;
+        }
+    }
+
+    if (Object.keys(utms).length > 0) {
+        return utms; // Si vienen en la URL, usamos esos (los más recientes)
+    }
+
+    // 2. Fallback a sessionStorage si la URL está limpia
+    try {
+        const stored = sessionStorage.getItem("saved_utms");
+        if (stored) return JSON.parse(stored);
+    } catch (e) { }
+
+    return {};
+};
 
 export default function LeadFunnelContainer() {
     const [isOpen, setIsOpen] = useState(false);
@@ -101,11 +125,12 @@ export default function LeadFunnelContainer() {
     };
 
     const handleSubmitLeadOnly = async (data: Record<string, string>) => {
+        const utms = getSavedUTMs();
         try {
             const res = await fetch('/api/calendar/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ skipCalendar: true, leadDetails: data })
+                body: JSON.stringify({ skipCalendar: true, leadDetails: { ...data, ...utms } })
             });
             const result = await res.json();
 
@@ -147,11 +172,12 @@ export default function LeadFunnelContainer() {
     };
 
     const handleSchedule = async (date: string, time: string, coachEmail: string) => {
+        const utms = getSavedUTMs();
         try {
             const res = await fetch('/api/calendar/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, time, coachEmail, leadDetails: leadData })
+                body: JSON.stringify({ date, time, coachEmail, leadDetails: { ...leadData, ...utms } })
             });
             const data = await res.json();
 

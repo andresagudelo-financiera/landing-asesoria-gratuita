@@ -8,8 +8,8 @@ const CLINT_BASE_URL = 'https://api.clint.digital/v1';
 
 import { COACH_CONFIG } from '../../../utils/coachConfig';
 
-// Import persistent pointer
-import { getAssigneePointer, saveAssigneePointer } from '../../../utils/assigneePointer';
+import { getAndIncrementPointer } from '../../../utils/assigneePointer';
+
 
 import * as fs from 'fs';
 import { createGoogleMeetEvent } from '../../../utils/googleCalendar';
@@ -60,11 +60,9 @@ export const POST: APIRoute = async ({ request }) => {
         if (coaches.length === 0) throw new Error('No valid coaches available in Clint');
 
         // 2. Lógica de Asignación (Recibir coach o usar Round-Robin como fallback)
+        const pointer = getAndIncrementPointer(coaches.length);
         let assignedCoach = coaches[0]; // Default
         const requestedCoachEmail = data.coachEmail;
-
-        let pointer = getAssigneePointer();
-        if (pointer >= coaches.length) pointer = 0;
 
         if (requestedCoachEmail) {
             const matchedCoach = coaches.find((c: any) => c.email?.toLowerCase() === requestedCoachEmail.toLowerCase());
@@ -78,8 +76,6 @@ export const POST: APIRoute = async ({ request }) => {
             assignedCoach = coaches[pointer];
         }
 
-        // Avanzar el puntero Round-Robin habitual para mantener la rotación
-        saveAssigneePointer((pointer + 1) % coaches.length);
 
         let debugLogs = [];
         debugLogs.push(`[CLINT] Creating Contact for ${data.leadDetails.email}`);
@@ -109,7 +105,7 @@ export const POST: APIRoute = async ({ request }) => {
             const lastName = nameParts.slice(1).join(' ') || '';
 
             // 2. Map form payload specifically to the webhook requested by the user
-            const webhookPayload = {
+            const webhookPayload: any = {
                 "name": firstName,
                 "last-name": lastName,
                 "email": data.leadDetails.email,
@@ -122,6 +118,15 @@ export const POST: APIRoute = async ({ request }) => {
                 "objetivo": data.leadDetails.objetivo || "",
                 "coach": assignedCoach.email
             };
+
+            // Append UTM parameters dynamically
+            if (data.leadDetails) {
+                Object.keys(data.leadDetails).forEach(key => {
+                    if (key.startsWith('utm_')) {
+                        webhookPayload[key] = data.leadDetails[key];
+                    }
+                });
+            }
 
             debugLogs.push(`[CLINT] Sending Webhook Payload: ${JSON.stringify(webhookPayload)}`);
 
