@@ -2,17 +2,23 @@ import React from 'react';
 
 interface ConfirmationViewProps {
     onClose: () => void;
-    meetLink?: string;
     coachName?: string;
-    dateTimeStr?: string;
+    calendlyUrl?: string;
 }
 
 export default function ConfirmationView({
     onClose,
-    meetLink,
     coachName = "Tu Money Strategist(a)",
-    dateTimeStr
+    calendlyUrl,
 }: ConfirmationViewProps) {
+
+    const handleReopenCalendly = () => {
+        if (typeof window !== 'undefined' && window.Calendly && calendlyUrl) {
+            window.Calendly.initPopupWidget({ url: calendlyUrl });
+        } else if (calendlyUrl) {
+            window.open(calendlyUrl, '_blank');
+        }
+    };
 
     return (
         <div className="flex flex-col h-full !font-sans animate-in zoom-in-95 duration-500 items-center justify-center text-center p-8">
@@ -26,52 +32,34 @@ export default function ConfirmationView({
             </div>
 
             <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                {dateTimeStr ? '¡Cita Confirmada!' : '¡Datos Recibidos!'}
+                ¡Estás a un paso!
             </h3>
             <p className="text-white/70 text-lg mb-8 max-w-md">
-                {dateTimeStr ? (
-                    <>Has agendado exitosamente tu sesión con <strong className="text-white">{coachName}</strong>. Te hemos enviado un correo con todos los detalles y el enlace oficial de la videollamada.</>
-                ) : (
-                    <>Tu información ha sido enviada exitosamente. <strong className="text-white">{coachName}</strong> te contactará muy pronto para coordinar tu sesión.</>
-                )}
+                Hemos asignado tu sesión a <strong className="text-white">{coachName}</strong>. Por favor, elige la fecha y hora en la ventana emergente para confirmar tu cita.
             </p>
 
-            <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left">
+            {/* Tarjeta de información */}
+            <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 text-left">
                 <div className="flex flex-col gap-4">
-                    {dateTimeStr && (
-                        <>
-                            <div>
-                                <span className="block text-xs text-white/40 uppercase tracking-widest font-bold">Cuándo</span>
-                                <span className="block text-white font-medium text-lg mt-1">{dateTimeStr}</span>
-                            </div>
-                            <div className="h-px w-full bg-white/10"></div>
-                        </>
-                    )}
                     <div>
                         <span className="block text-xs text-white/40 uppercase tracking-widest font-bold">Con quién</span>
-                        <span className="block text-white font-medium text-lg mt-1">{coachName}</span>
+                        <span className="block text-white font-medium text-lg mt-1 break-words break-all">{coachName}</span>
                     </div>
-                    {meetLink && (
-                        <>
-                            <div className="h-px w-full bg-white/10"></div>
-                            <div>
-                                <span className="block text-xs text-white/40 uppercase tracking-widest font-bold mb-2">Enlace de Videollamada</span>
-                                <a
-                                    href={meetLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 text-claudia-accent-orange hover:text-orange-400 transition-colors"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                                    </svg>
-                                    <span>Abrir Google Meet</span>
-                                </a>
-                            </div>
-                        </>
-                    )}
                 </div>
             </div>
+
+            {/* Botón de rescate: reabrir popup de Calendly */}
+            {calendlyUrl && (
+                <div className="w-full max-w-sm bg-claudia-accent-orange/10 border border-claudia-accent-orange/30 rounded-2xl p-5 mb-6 text-center">
+                    <p className="text-white/60 text-sm mb-3">¿Se cerró el calendario?</p>
+                    <button
+                        onClick={handleReopenCalendly}
+                        className="w-full px-8 py-3 bg-claudia-accent-orange text-white rounded-full font-bold uppercase tracking-wider hover:scale-105 hover:shadow-[0_0_20px_rgba(255,152,0,0.3)] transition-all"
+                    >
+                        Reabrir para agendar
+                    </button>
+                </div>
+            )}
 
             <button
                 onClick={onClose}

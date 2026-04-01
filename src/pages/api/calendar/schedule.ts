@@ -11,26 +11,84 @@ import { COACH_CONFIG } from '../../../utils/coachConfig';
 import { getAndIncrementPointer } from '../../../utils/assigneePointer';
 
 
-import * as fs from 'fs';
-import { createGoogleMeetEvent } from '../../../utils/googleCalendar';
+// [FASE 4] Google Calendar desconectado — importación eliminada
+// import { createGoogleMeetEvent } from '../../../utils/googleCalendar';
 
 export const POST: APIRoute = async ({ request }) => {
     try {
         let data: any = {};
         try {
-            data = await request.clone().json();
-            fs.writeFileSync('/tmp/api_payload_debug.json', JSON.stringify(data, null, 2));
+            data = await request.json();
             console.log("SCHEDULE PAYLOAD RECEIVED:", data);
         } catch (err: any) {
             console.error("Payload read error:", err.message);
             return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
         }
 
-        // Validar payload (respuestas, fecha, hora, etc)
-        if (!data || (!data.skipCalendar && (!data.date || !data.time)) || !data.leadDetails) {
-            console.log("Validation failed. Missing required fields.");
-            return new Response(JSON.stringify({ error: 'Missing required schedule data' }), { status: 400 });
+        // [FASE 4] Validación simplificada: solo requerimos leadDetails (date/time ya no existen)
+        if (!data || !data.leadDetails) {
+            console.log("Validation failed. Missing leadDetails.");
+            return new Response(JSON.stringify({ error: 'Faltan detalles del lead' }), { status: 400 });
         }
+
+        // ─── FASE 2.1: CONGELADOR — Early return para leads descalificados ───────
+        if (data.leadDetails?.nivel_calificacion === "Baja") {
+            try {
+                const rawPhoneBaja = (data.leadDetails.telefono || '').replace(/[^\d]/g, '');
+                let ddiBaja  = "+57";
+                let numBaja  = rawPhoneBaja;
+                if (rawPhoneBaja.startsWith('57') && rawPhoneBaja.length > 10) {
+                    numBaja = rawPhoneBaja.substring(2);
+                } else if (rawPhoneBaja.length > 10 && !rawPhoneBaja.startsWith('3')) {
+                    ddiBaja = `+${rawPhoneBaja.substring(0, 2)}`;
+                    numBaja = rawPhoneBaja.substring(2);
+                }
+
+                const fullNameBaja = data.leadDetails.nombre || 'Sin Nombre';
+                const namePartsBaja = fullNameBaja.split(' ');
+
+                const webhookPayload: Record<string, string> = {
+                    "name":               namePartsBaja[0] || '',
+                    "last-name":          namePartsBaja.slice(1).join(' ') || '',
+                    "email":              data.leadDetails.email        || '',
+                    "phone":              `${ddiBaja}${numBaja}`,
+                    "ocupacion":          "none",
+                    "ingreso":            data.leadDetails.ingresos     || '',
+                    "ahorro":             data.leadDetails.capacidad_ahorro  || '',
+                    "ahorrado":           data.leadDetails.flujo_caja        || '',
+                    "patrimonio":         data.leadDetails.capital_liquido   || '',
+                    "objetivo":           data.leadDetails.objetivo     || '',
+                    "coach":              "Sin asignar",
+                    "agencia":            data.leadDetails.agencia           || "Sin atribuir",
+                    "fuente":             data.leadDetails.fuente            || "Directo",
+                    "nivel_calificacion": data.leadDetails.nivel_calificacion,
+                };
+
+                // Append UTM parameters dynamically
+                Object.keys(data.leadDetails).forEach(key => {
+                    if (key.startsWith('utm_')) webhookPayload[key] = data.leadDetails[key];
+                });
+
+                console.log("[CONGELADOR] Lead Baja interceptado. Enviando a nutrición:", webhookPayload);
+
+                await fetch(
+                    'https://functions-api.clint.digital/endpoints/integration/webhook/f2ee93c4-59f5-45d1-8802-b9619058f259',
+                    {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body:    JSON.stringify(webhookPayload),
+                    }
+                );
+            } catch (bajaError: any) {
+                console.error("[CONGELADOR] Error al enviar lead Baja a nutrición:", bajaError.message);
+            }
+
+            return new Response(
+                JSON.stringify({ success: true, message: "Lead derivado a nutrición", skipCalendar: true }),
+                { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
+        // ─────────────────────────────────────────────────────────────────────────
 
         // 1. Obtener lista de coaches desde Clint en tiempo real
         const clintRes = await fetch(`${CLINT_BASE_URL}/users`, {
@@ -112,11 +170,15 @@ export const POST: APIRoute = async ({ request }) => {
                 "phone": `${ddi}${phoneNum}`,
                 "ocupacion": "none",
                 "ingreso": data.leadDetails.ingresos || "",
-                "ahorro": data.leadDetails.ahorro || "",
-                "ahorrado": data.leadDetails.ahorrado || "",
-                "patrimonio": data.leadDetails.patrimonio || "",
+                "ahorro": data.leadDetails.capacidad_ahorro || "",
+                "ahorrado": data.leadDetails.flujo_caja || "",
+                "patrimonio": data.leadDetails.capital_liquido || "",
                 "objetivo": data.leadDetails.objetivo || "",
-                "coach": assignedCoach.email
+                "coach": assignedCoach.email,
+                // [FASE 1] Campos de enriquecimiento enviados por el frontend
+                "agencia": data.leadDetails.agencia || "Sin atribuir",
+                "fuente": data.leadDetails.fuente || "Directo",
+                "nivel_calificacion": data.leadDetails.nivel_calificacion || "Baja",
             };
 
             // Append UTM parameters dynamically
@@ -150,43 +212,31 @@ export const POST: APIRoute = async ({ request }) => {
             debugLogs.push(`[CLINT] Unhandled CRM error: ${crmError.message}`);
         }
 
-        fs.writeFileSync('/tmp/clint_debug.txt', debugLogs.join('\n'));
+        console.log('[CLINT DEBUG]', debugLogs.join(' | '));
 
-        // 5. Crear Enlace de Meet en Google Calendar (OPCIONAL)
-        let googleMeetLink = '';
-        if (!data.skipCalendar) {
-            try {
-                const eventData = await createGoogleMeetEvent(
-                    assignedCoach.email,
-                    data.leadDetails.email,
-                    data.date,         // e.g. "2026-03-05"
-                    data.time,         // e.g. "14:00"
-                    fullName
-                );
-
-                googleMeetLink = eventData.hangoutLink || eventData.htmlLink || `https://meet.google.com/mock-${Math.random().toString(36).substring(7)}`;
-                console.log(`[CALENDAR] Successfully created Meet link: ${googleMeetLink}`);
-            } catch (calendarError) {
-                console.error("[CALENDAR] Error generating meet link:", calendarError);
-                // Fallback just in case Google API fails so the user still gets a success screen
-                googleMeetLink = `https://meet.google.com/mock-${Math.random().toString(36).substring(7)}`;
-            }
-        }
+        // [FASE 4] Bloque de Google Calendar eliminado — ahora se usa Calendly
+        // const eventData = await createGoogleMeetEvent(...);
 
         console.log(`[ROUND-ROBIN] Assigned Lead to: ${assignedCoach.email}. Persistent index saved.`);
 
-        // Devolver objeto de confirmación
+        // [FASE 4] Resolver configuración local del coach (para obtener calendlyUrl)
+        const coachConfig = COACH_CONFIG.find(c => c.email === assignedCoach.email);
+
+        // [FASE 5] Enviar email de respaldo al lead (fire-and-forget, no bloquea la respuesta)
+        const firstName = fullName.split(' ')[0] || fullName;
+        const coachDisplayName = `${assignedCoach?.first_name || ''} ${assignedCoach?.last_name || ''}`.trim() || 'tu Money Strategist';
+        sendBackupEmail(
+            data.leadDetails.email,
+            firstName,
+            coachConfig?.calendlyUrl || 'https://calendly.com/default-financiera',
+            coachDisplayName
+        ).catch((err: any) => console.error('[EMAIL] Error en sendBackupEmail:', err.message));
+
         return new Response(JSON.stringify({
             success: true,
-            coach: {
-                name: `${assignedCoach.first_name || ''} ${assignedCoach.last_name || ''}`.trim() || 'Tu Money Strategist(a)',
-                email: assignedCoach.email
-            },
-            meetLink: data.skipCalendar ? null : googleMeetLink,
-            schedule: data.skipCalendar ? null : {
-                date: data.date,
-                time: data.time
-            }
+            coach: assignedCoach.email,
+            coachName: coachDisplayName,
+            calendlyUrl: coachConfig?.calendlyUrl || 'https://calendly.com/default-financiera'
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
@@ -202,3 +252,75 @@ export const POST: APIRoute = async ({ request }) => {
         });
     }
 }
+
+// ─── FASE 5: Helper de email de respaldo vía SendGrid REST API ───────────────
+async function sendBackupEmail(
+    leadEmail: string,
+    leadName: string,
+    calendlyUrl: string,
+    coachName: string
+): Promise<void> {
+    const apiKey = import.meta.env.SENDGRID_API_KEY || process.env.SENDGRID_API_KEY;
+    if (!apiKey) {
+        console.warn('[EMAIL] SENDGRID_API_KEY no definida. Email de respaldo omitido.');
+        return;
+    }
+
+    const htmlBody = `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background-color:#0d0d0d;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0d0d;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background-color:#1a1a1a;border-radius:16px;overflow:hidden;border:1px solid #2a2a2a;">
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#1a1a1a 0%,#2d1f00 100%);padding:40px 40px 30px;text-align:center;border-bottom:2px solid #ff9800;">
+          <p style="margin:0 0 8px;font-size:13px;color:#ff9800;letter-spacing:3px;text-transform:uppercase;font-weight:700;">Financieramente CU</p>
+          <h1 style="margin:0;font-size:28px;color:#ffffff;font-weight:800;line-height:1.2;">Tu enlace de agendamiento</h1>
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:40px;">
+          <p style="color:#e0e0e0;font-size:16px;line-height:1.7;margin:0 0 16px;">Hola <strong style="color:#ffffff;">${leadName}</strong>,</p>
+          <p style="color:#b0b0b0;font-size:15px;line-height:1.7;margin:0 0 24px;">Hemos recibido tu solicitud y te hemos asignado a <strong style="color:#ff9800;">${coachName}</strong>, quien ser&aacute; tu Money Strategist personal para la sesi&oacute;n de diagn&oacute;stico gratuita.</p>
+          <p style="color:#b0b0b0;font-size:15px;line-height:1.7;margin:0 0 32px;">Haz clic en el bot&oacute;n para elegir la fecha y hora que mejor te convenga:</p>
+          <!-- CTA Button -->
+          <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding-bottom:32px;">
+            <a href="${calendlyUrl}" target="_blank" style="display:inline-block;background-color:#ff9800;color:#000000;font-size:16px;font-weight:800;text-decoration:none;padding:16px 40px;border-radius:100px;letter-spacing:1px;text-transform:uppercase;">Agendar mi sesi&oacute;n</a>
+          </td></tr></table>
+          <p style="color:#606060;font-size:13px;line-height:1.6;margin:0;border-top:1px solid #2a2a2a;padding-top:24px;">Si el bot&oacute;n no funciona, copia y pega este enlace en tu navegador:<br><a href="${calendlyUrl}" style="color:#ff9800;word-break:break-all;">${calendlyUrl}</a></p>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="background-color:#111111;padding:24px 40px;text-align:center;border-top:1px solid #2a2a2a;">
+          <p style="margin:0;color:#404040;font-size:12px;line-height:1.6;">Este correo fue enviado por Financieramente CU &mdash; Finanzas con Claudia Uribe<br>Si no solicitaste esta sesi&oacute;n, puedes ignorar este mensaje.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    const payload = {
+        personalizations: [{ to: [{ email: leadEmail }] }],
+        from: { email: 'soporte@financieramentecu.com', name: 'Financieramente CU' },
+        subject: 'Tu enlace de agendamiento - Financieramente CU',
+        content: [{ type: 'text/html', value: htmlBody }],
+    };
+
+    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`SendGrid ${res.status}: ${errText}`);
+    }
+
+    console.log(`[EMAIL] Backup email enviado a ${leadEmail} (coach: ${coachName})`);
+}
+// ────────────────────────────────────────────────────────────────────────────

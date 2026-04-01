@@ -10,6 +10,79 @@ import ConfirmationView from './ConfirmationView';
 // 4 = DisqualifiedView (Fin de perfilamiento sin agenda)
 type FunnelStage = 1 | 2 | 3 | 4;
 
+// ==========================================
+// FASE 1: TIPOS Y HELPERS DE ENRIQUECIMIENTO
+// ==========================================
+type NivelCalificacion = 'Alta' | 'Media' | 'Baja';
+
+// [FASE 4] Declaración global del widget de Calendly
+declare global {
+    interface Window {
+        Calendly?: {
+            initPopupWidget: (options: { url: string }) => void;
+        };
+    }
+}
+
+interface LeadEnrichment {
+    agencia: string;
+    fuente: string;
+    nivel_calificacion: NivelCalificacion;
+}
+
+/**
+ * Calcula agencia y fuente a partir del utm_source capturado.
+ * Valores posibles de utm_source: 'meta' (Paid Meta Ads) | cualquier otro | vacío.
+ */
+function calcularAtribucion(utms: Record<string, string>): Pick<LeadEnrichment, 'agencia' | 'fuente'> {
+    const source = (utms['utm_source'] || '').toLowerCase().trim();
+    if (source === 'meta ads') {
+        return { agencia: 'Escalads Groupe', fuente: 'ADS' };
+    }
+    if (source !== '') {
+        return { agencia: 'Asygnuz', fuente: 'Organico' };
+    }
+    return { agencia: 'Sin atribuir', fuente: 'Directo' };
+}
+
+/**
+ * Calcula el nivel de calificación del lead basándose en los ids y values
+ * definidos estrictamente en formConfig.ts:
+ *   ingresos: 'menos_3m' | '3m_5m' | '5m_10m' | 'mas_10m'
+ *   flujo_caja: 'menos_300k' | '300k_800k' | '800k_1.5m' | '1.5m_3m' | 'mas_3m'
+ *   capacidad_ahorro: 'menos_500k' | '500k_1.5m' | '1.5m_3m' | 'mas_3m'
+ *   capital_liquido: 'menos_5m' | '5m_20m' | '20m_50m' | 'mas_50m'
+ */
+function calcularNivelCalificacion(formData: Record<string, string>): NivelCalificacion {
+    const ingresos = formData['ingresos'] ?? '';
+    const flujoCaja = formData['flujo_caja'] ?? '';
+    const capacidadAhorro = formData['capacidad_ahorro'] ?? '';
+    const capitalLiquido = formData['capital_liquido'] ?? '';
+
+    const ahorroAlto = capacidadAhorro === '1.5m_3m' || capacidadAhorro === 'mas_3m';
+    const capitalAlto = capitalLiquido === '20m_50m' || capitalLiquido === 'mas_50m';
+    const flujoMedio = flujoCaja === '800k_1.5m' || flujoCaja === '1.5m_3m' || flujoCaja === 'mas_3m';
+
+    // Alta: ingresos muy altos, o ingresos altos con capacidad de ahorro/capital significativos
+    if (
+        ingresos === 'mas_10m' ||
+        (ingresos === '5m_10m' && ahorroAlto) ||
+        (ingresos === '5m_10m' && capitalAlto)
+    ) {
+        return 'Alta';
+    }
+
+    // Media: ingresos altos sin capital/ahorro suficiente, o ingresos medios con buen flujo
+    if (
+        ingresos === '5m_10m' ||
+        (ingresos === '3m_5m' && flujoMedio)
+    ) {
+        return 'Media';
+    }
+
+    return 'Baja';
+}
+
 /**
  * Event Listener global para abrir el embudo desde botones en Astro
  */
@@ -26,7 +99,7 @@ export const openLeadFunnel = () => {
 const ENABLE_CALENDAR_SCHEDULING = true;
 const getSavedUTMs = (): Record<string, string> => {
     if (typeof window === 'undefined') return {};
-    
+
     // 1. Priorizar parámetros de la URL actual
     const params = new URLSearchParams(window.location.search);
     const utms: Record<string, string> = {};
@@ -56,6 +129,14 @@ export default function LeadFunnelContainer() {
     const [scheduleData, setScheduleData] = useState<{ date: string, time: string } | null>(null);
     const [assignedCoach, setAssignedCoach] = useState<string | null>(null);
     const [assignedMeetLink, setAssignedMeetLink] = useState<string | null>(null);
+    // [FASE 4] URL de Calendly del coach asignado
+    const [calendlyUrl, setCalendlyUrl] = useState<string>('');
+    // [FASE 1] Estado de enriquecimiento: se calcula al completar el formulario
+    const [leadEnrichment, setLeadEnrichment] = useState<LeadEnrichment>({
+        agencia: 'Sin atribuir',
+        fuente: 'Directo',
+        nivel_calificacion: 'Baja',
+    });
 
     useEffect(() => {
         const handleOpen = () => {
@@ -75,6 +156,7 @@ export default function LeadFunnelContainer() {
                 setScheduleData(null);
                 setAssignedCoach(null);
                 setAssignedMeetLink(null);
+                setCalendlyUrl('');
             }
         };
 
@@ -96,46 +178,115 @@ export default function LeadFunnelContainer() {
 
     if (!isOpen) return null;
 
-    const handleFormNext = (data: Record<string, string>) => {
+    const handleFormNext = async (data: Record<string, string>) => {
         setLeadData(data);
-        setStage(2);
 
-        // Evento GA4: Perfilamiento Completo (Lead)
+        // [FASE 1] Calcular atribución y calificación con los datos recién obtenidos
+        const utms = getSavedUTMs();
+        const { agencia, fuente } = calcularAtribucion(utms);
+        const nivel_calificacion = calcularNivelCalificacion(data);
+        const enrichment: LeadEnrichment = { agencia, fuente, nivel_calificacion };
+        setLeadEnrichment(enrichment);
+
+        // Evento GA4: Perfilamiento Completo (Lead) — enriquecido con atribución y calificación
         if (typeof window !== 'undefined' && 'gtag' in window) {
             (window as any).gtag('event', 'generate_lead', {
                 lead_type: data.perfil || 'standard',
-                income_range: data.ingresos || 'unknown'
+                income_range: data.ingresos || 'unknown',
+                // [FASE 1] Propiedades de enriquecimiento
+                agencia,
+                fuente,
+                calificacion_lead: nivel_calificacion,
             });
         }
 
-        // Evento Meta Pixel: Lead
-        if (typeof window !== 'undefined' && 'fbq' in window) {
+        // [FASE 1] Evento Meta Pixel: Lead — SOLO se dispara si el nivel es Alta o Media
+        if (
+            typeof window !== 'undefined' &&
+            'fbq' in window &&
+            (nivel_calificacion === 'Alta' || nivel_calificacion === 'Media')
+        ) {
             (window as any).fbq('track', 'Lead', {
-                content_category: data.perfil || 'standard',
+                content_category: nivel_calificacion,
+                content_name: agencia,
                 value: 0,
-                currency: 'USD'
+                currency: 'USD',
             });
         }
 
+        // [FASE 4] Bypass de CalendarPicker: fetch inmediato + popup de Calendly
         if (ENABLE_CALENDAR_SCHEDULING) {
-            setStage(2);
+            const utmsFetch = getSavedUTMs();
+            const { agencia: ag, fuente: fu, nivel_calificacion: nc } = enrichment;
+            try {
+                const res = await fetch('/api/calendar/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        skipCalendar: true,
+                        leadDetails: {
+                            ...data,
+                            ...utmsFetch,
+                            agencia: ag,
+                            fuente: fu,
+                            nivel_calificacion: nc,
+                        },
+                    }),
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    setAssignedCoach(result.coachName || result.coach || 'Tu Money Strategist(a)');
+
+                    // [FASE 4] Guardar calendlyUrl en estado para pasársela a ConfirmationView
+                    const url = result.calendlyUrl || 'https://calendly.com/default-financiera';
+                    setCalendlyUrl(url);
+
+                    // Abrir popup de Calendly con la URL del coach asignado
+                    if (typeof window !== 'undefined' && window.Calendly) {
+                        window.Calendly.initPopupWidget({ url });
+                    } else {
+                        console.warn('[CALENDLY] widget.js aún no cargó. Redirigiendo a URL.');
+                        window.open(url, '_blank');
+                    }
+                } else {
+                    setAssignedCoach('Tu Money Strategist(a)');
+                }
+            } catch (error) {
+                console.error('[CALENDLY] Error al obtener URL del coach:', error);
+                setAssignedCoach('Tu Money Strategist(a)');
+            }
+
+            // Stage 3 siempre se muestra (dentro del modal, detrás del popup)
+            setStage(3);
         } else {
-            handleSubmitLeadOnly(data);
+            handleSubmitLeadOnly(data, enrichment);
         }
     };
 
-    const handleSubmitLeadOnly = async (data: Record<string, string>) => {
+    // [FASE 1] Recibe enrichment como parámetro para garantizar consistencia sin depender del estado asíncrono
+    const handleSubmitLeadOnly = async (data: Record<string, string>, enrichment: LeadEnrichment = leadEnrichment) => {
         const utms = getSavedUTMs();
         try {
             const res = await fetch('/api/calendar/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ skipCalendar: true, leadDetails: { ...data, ...utms } })
+                // [FASE 1] Payload enriquecido con atribución y calificación
+                body: JSON.stringify({
+                    skipCalendar: true,
+                    leadDetails: {
+                        ...data,
+                        ...utms,
+                        agencia: enrichment.agencia,
+                        fuente: enrichment.fuente,
+                        nivel_calificacion: enrichment.nivel_calificacion,
+                    }
+                })
             });
             const result = await res.json();
 
-            if (result.success && result.coach) {
-                setAssignedCoach(result.coach.name);
+            if (result.success) {
+                setAssignedCoach(result.coachName || result.coach || "Tu Money Strategist(a)");
             } else {
                 setAssignedCoach("Tu Money Strategist(a)");
             }
@@ -149,35 +300,76 @@ export default function LeadFunnelContainer() {
         setStage(3);
     };
 
-    const handleFormDisqualified = (data: Record<string, string>) => {
+    // [FASE 1] async: los leads descalificados también se envían a Clint CRM (fire-and-forget, no bloquea la UI)
+    const handleFormDisqualified = async (data: Record<string, string>) => {
         setLeadData(data);
-        setStage(4);
+        setStage(4); // UI avanza inmediatamente, el fetch ocurre en background
 
-        // Evento GA4: Perfilamiento Completo (Disqualified)
+        // [FASE 1] Calcular atribución para descalificados (fuente es igualmente valiosa para analítica)
+        const utms = getSavedUTMs();
+        const { agencia, fuente } = calcularAtribucion(utms);
+        // Descalificados tienen siempre nivel Baja por definición
+        const nivel_calificacion: NivelCalificacion = 'Baja';
+
+        // Evento GA4: Perfilamiento Completo (Disqualified) — enriquecido
         if (typeof window !== 'undefined' && 'gtag' in window) {
             (window as any).gtag('event', 'generate_lead', {
                 lead_type: 'disqualified',
-                income_range: data.ingresos || 'unknown'
+                income_range: data.ingresos || 'unknown',
+                // [FASE 1] Propiedades de enriquecimiento
+                agencia,
+                fuente,
+                calificacion_lead: nivel_calificacion,
             });
         }
 
-        // Evento Meta Pixel: Lead (Registramos el lead igual, pero sabemos que no calificó para llamada)
-        if (typeof window !== 'undefined' && 'fbq' in window) {
-            (window as any).fbq('track', 'Lead', {
-                content_category: 'disqualified',
-                value: 0,
-                currency: 'USD'
+        // [FASE 1] Meta Pixel: NO se dispara para leads descalificados (nivel siempre Baja en este path)
+
+        // [FASE 1] Enviar lead descalificado a Clint CRM vía schedule.ts (skipCalendar=true)
+        // Fire-and-forget: no bloqueamos la UI ni lanzamos errores al usuario
+        try {
+            await fetch('/api/calendar/schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    skipCalendar: true,
+                    leadDetails: {
+                        ...data,
+                        ...utms,
+                        agencia,
+                        fuente,
+                        nivel_calificacion,
+                    },
+                }),
             });
+        } catch (err) {
+            // No propagamos el error: la UX (stage 4) ya está satisfecha
+            console.error('[CRM] Error enviando lead descalificado a Clint:', err);
         }
     };
 
     const handleSchedule = async (date: string, time: string, coachEmail: string) => {
         const utms = getSavedUTMs();
+        // [FASE 1] Usar el enriquecimiento calculado al completar el formulario
+        const { agencia, fuente, nivel_calificacion } = leadEnrichment;
+
         try {
             const res = await fetch('/api/calendar/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, time, coachEmail, leadDetails: { ...leadData, ...utms } })
+                // [FASE 1] Payload enriquecido con atribución y calificación
+                body: JSON.stringify({
+                    date,
+                    time,
+                    coachEmail,
+                    leadDetails: {
+                        ...leadData,
+                        ...utms,
+                        agencia,
+                        fuente,
+                        nivel_calificacion,
+                    }
+                })
             });
             const data = await res.json();
 
@@ -195,20 +387,26 @@ export default function LeadFunnelContainer() {
         setScheduleData({ date, time });
         setStage(3);
 
-        // Evento GA4: Agendamiento Completo (Schedule)
+        // Evento GA4: Agendamiento Completo (Schedule) — enriquecido con atribución
         if (typeof window !== 'undefined' && 'gtag' in window) {
             (window as any).gtag('event', 'schedule', {
                 appointment_date: date,
                 appointment_time: time,
-                coach: assignedCoach
+                coach: assignedCoach,
+                // [FASE 1] Propiedades de enriquecimiento
+                agencia,
+                fuente,
+                calificacion_lead: nivel_calificacion,
             });
         }
 
-        // Evento Meta Pixel: Schedule
+        // [FASE 1] Evento Meta Pixel: Schedule — se dispara para todos los que llegaron a agendar
+        // (el filtro de calidad ya se aplicó en el evento Lead; si llegó aquí, ya calificó)
         if (typeof window !== 'undefined' && 'fbq' in window) {
             (window as any).fbq('track', 'Schedule', {
                 content_name: 'Sesión Diagnóstico',
-                status: 'scheduled'
+                content_category: nivel_calificacion,
+                status: 'scheduled',
             });
         }
     };
@@ -257,8 +455,7 @@ export default function LeadFunnelContainer() {
                         <ConfirmationView
                             onClose={() => setIsOpen(false)}
                             coachName={assignedCoach || "Tu Money Strategist(a)"}
-                            dateTimeStr={scheduleData ? `${scheduleData.date} a las ${scheduleData.time}` : ''}
-                            meetLink={assignedMeetLink || undefined}
+                            calendlyUrl={calendlyUrl || undefined}
                         />
                     )}
 
