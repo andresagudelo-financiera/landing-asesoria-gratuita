@@ -7,9 +7,10 @@ import type { Question } from './formConfig';
 interface DynamicFormProps {
     onNext: (data: Record<string, string>) => void;
     onDisqualified: (data: Record<string, string>) => void;
+    onProgressUpdate?: (progress: number) => void;
 }
 
-export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps) {
+export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }: DynamicFormProps) {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [error, setError] = useState('');
@@ -19,10 +20,21 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
     // Para animaciones sencillas en cambio de pregunta
     const [isTransitioning, setIsTransitioning] = useState(false);
 
+    // Emitir progreso al contenedor padre
+    useEffect(() => {
+        if (onProgressUpdate) {
+            // El primer paso (index 0) debe ser 0%, el último paso (index 7) debe ser 100%
+            const totalSteps = funnelConfig.questions.length;
+            const progressPercent = totalSteps > 1 
+                ? (currentStepIndex / (totalSteps - 1)) * 100 
+                : 100;
+            onProgressUpdate(progressPercent);
+        }
+    }, [currentStepIndex, onProgressUpdate]);
+
     if (!question) return null;
 
     const handleNext = (overrideAnswer?: string) => {
-        // Validar requeridos
         const answer = overrideAnswer !== undefined ? overrideAnswer : (answers[question.id] || '');
         if (question.required && (!answer || answer.trim() === '')) {
             setError('Por favor, completa este campo para continuar.');
@@ -39,8 +51,6 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
         }
 
         if (question.type === 'tel') {
-            // react-phone-input-2 ya nos da el formato con el + incluido si lo configuramos bien, pero validamos longitud básica
-            // Quitar espacios y guiones para validar solo números y el +
             const cleanPhone = answer.replace(/[\s-]/g, '');
             const phoneRegex = /^\+[0-9]{7,15}$/;
             if (!phoneRegex.test(cleanPhone)) {
@@ -59,8 +69,8 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                 setCurrentStepIndex(currentStepIndex + 1);
                 setIsTransitioning(false);
             } else {
-                // Formulario terminado, evaluar reglas
-                evaluateRules();
+                // Formulario terminado, la calificación se calcula en el contenedor
+                onNext(answers);
             }
         }, 300);
     };
@@ -73,22 +83,6 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                 setIsTransitioning(false);
                 setError('');
             }, 300);
-        }
-    };
-
-    const evaluateRules = () => {
-        let disqualified = false;
-
-        for (const rule of funnelConfig.disqualificationRules) {
-            const answer = answers[rule.questionId];
-            if (rule.operator === 'equals' && answer === rule.value) disqualified = true;
-            if (rule.operator === 'not-equals' && answer !== rule.value) disqualified = true;
-        }
-
-        if (disqualified) {
-            onDisqualified(answers);
-        } else {
-            onNext(answers);
         }
     };
 
@@ -109,9 +103,6 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') handleNext();
     };
-
-    // Porcentaje de progreso
-    const progressPercent = ((currentStepIndex + 1) / funnelConfig.questions.length) * 100;
 
     return (
         <div className="flex flex-col h-full !font-sans">
@@ -186,7 +177,7 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                                         box-shadow: none;
                                     }
                                     .react-tel-input .flag-dropdown {
-                                        background-color: rgba(255, 255, 255, 0.05); /* Same as input to avoid white edges */
+                                        background-color: rgba(255, 255, 255, 0.05);
                                         border: none;
                                         border-right: 2px solid rgba(255, 255, 255, 0.1);
                                         border-radius: 0.75rem 0 0 0.75rem;
@@ -195,7 +186,7 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                                     .react-tel-input .flag-dropdown:hover, 
                                     .react-tel-input .flag-dropdown:focus,
                                     .react-tel-input .flag-dropdown.open {
-                                        background-color: rgba(255, 255, 255, 0.08); /* Slightly lighter for hover/active state */
+                                        background-color: rgba(255, 255, 255, 0.08);
                                         border-radius: 0.75rem 0 0 0.75rem;
                                     }
                                     .react-tel-input .flag-dropdown.open .selected-flag {
@@ -210,10 +201,6 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                                     .react-tel-input .selected-flag .arrow {
                                         left: 40px;
                                     }
-                                    .react-tel-input .selected-flag:hover, 
-                                    .react-tel-input .selected-flag:focus {
-                                        background-color: transparent;
-                                    }
                                     .react-tel-input .country-list {
                                         background-color: #1a1a1a;
                                         color: white;
@@ -225,39 +212,15 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                                     .react-tel-input .country-list .country.highlight {
                                         background-color: rgba(255, 255, 255, 0.1);
                                     }
-                                    .react-tel-input .country-list .search {
-                                        background-color: #1a1a1a;
-                                        padding: 10px 14px;
-                                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                                    }
-                                    .react-tel-input .country-list .search-box {
-                                        background-color: rgba(255, 255, 255, 0.05);
-                                        border: 1px solid rgba(255, 255, 255, 0.1);
-                                        color: white;
-                                        border-radius: 4px;
-                                        width: 100%;
-                                        padding: 8px 12px;
-                                        margin-left: 0;
-                                    }
-                                    .react-tel-input .country-list .search-box::placeholder {
-                                        color: rgba(255, 255, 255, 0.4);
-                                    }
                                     .react-tel-input .form-control::placeholder {
                                         color: rgba(255, 255, 255, 0.3);
                                     }
-                                    .react-tel-input .flag-dropdown.open {
-                                        background-color: rgba(255, 255, 255, 0.05);
-                                        border-radius: 0.75rem 0 0 0.75rem;
-                                    }
                                 `}</style>
                                 <PhoneInput
-                                    country={'co'} // Default a Colombia
+                                    country={'co'}
                                     value={answers[question.id] || ''}
                                     countryCodeEditable={false}
                                     onChange={(phone, countryData: any) => {
-                                        // Formatear como pide Clint: +yy xxxxxxxx
-                                        // PhoneInput nos da '573001234567' (sin el + ni espacios)
-                                        // Extraemos el código de país y el resto del número
                                         if (!phone) {
                                             setAnswers(prev => ({ ...prev, [question.id]: '' }));
                                             return;
@@ -265,6 +228,12 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
 
                                         const dialCode = countryData?.dialCode || '';
                                         let cleanPhoneString = phone;
+                                        
+                                        // [FIX] Mitigar que el usuario repita el indicativo manualmente
+                                        // Si el número empieza con el dialCode duplicado (ej. 5757...), quitamos uno
+                                        if (dialCode && cleanPhoneString.startsWith(dialCode + dialCode)) {
+                                            cleanPhoneString = cleanPhoneString.substring(dialCode.length);
+                                        }
 
                                         // Si el teléfono empieza con el código de país, lo separamos con un espacio
                                         if (dialCode && cleanPhoneString.startsWith(dialCode)) {
@@ -280,8 +249,6 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                                     onKeyDown={handleKeyDown}
                                     placeholder={question.placeholder || 'Ej: 300 123 4567'}
                                     enableSearch={true}
-                                    searchPlaceholder="Buscar por país..."
-                                    searchNotFound="País no encontrado"
                                     masks={{ co: '... ... ....' }}
                                 />
                             </div>
@@ -306,7 +273,6 @@ export default function DynamicForm({ onNext, onDisqualified }: DynamicFormProps
                     Atrás
                 </button>
 
-                {/* Solo mostrar botón Siguiente para inputs de texto, para choice se auto-avanza */}
                 {question.type !== 'single-choice' && (
                     <button
                         type="button"

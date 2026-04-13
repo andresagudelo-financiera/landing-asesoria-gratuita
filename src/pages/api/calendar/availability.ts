@@ -11,7 +11,7 @@ import { COACH_CONFIG } from '../../../utils/coachConfig';
 
 // Import Google Calendar Logic
 import { getCoachesAvailability } from '../../../utils/googleCalendar';
-import { getAssigneePointer } from '../../../utils/assigneePointer';
+import { getAssigneePointer, getAndIncrementPointer } from '../../../utils/assigneePointer';
 import { isColombiaHoliday } from '../../../utils/colombiaHolidays';
 
 export const GET: APIRoute = async ({ request }) => {
@@ -33,9 +33,9 @@ export const GET: APIRoute = async ({ request }) => {
 
         const usersArray = clintUsers.data || clintUsers; // Manejar si viene en .data o directo
 
-        // 2. Filter only valid & active coaches, preserving COACH_CONFIG order (interleaved)
+        // 2. Filter only valid & active coaches WITH calendlyUrl, preserving COACH_CONFIG order (interleaved)
         const coaches = COACH_CONFIG
-            .filter(config => config.active !== false)
+            .filter(config => config.active !== false && config.calendlyUrl)
             .map(config => {
                 const clintUser = usersArray.find((user: any) => user.email?.toLowerCase() === config.email.toLowerCase());
                 if (clintUser) {
@@ -70,8 +70,11 @@ export const GET: APIRoute = async ({ request }) => {
         const coachEmails = coaches.map((c: any) => c.email);
         const allBusyPeriods = await getCoachesAvailability(coachEmails, startForApi.toISOString(), endForApi.toISOString());
 
-        let basePointer = getAssigneePointer();
-        if (basePointer >= coaches.length) basePointer = 0;
+        // 4. Obtener y avanzar el puntero global atómicamente para que la próxima carga empiece en otro lugar
+        const basePointer = getAndIncrementPointer(coaches.length);
+
+        // Usamos un puntero local que irá rotando entre cada slot/día para distribuir la carga equitativamente
+        let localPointer = basePointer;
 
         // Available 2 to 10 days from now
         for (let i = 2; i <= 10; i++) {
@@ -100,9 +103,9 @@ export const GET: APIRoute = async ({ request }) => {
 
                     let assignedCoachEmail = null;
 
-                    // Loop coaches starting from pointer to find the first FREE coach for this slot
+                    // Rotación interna: buscamos al primer coach libre empezando desde localPointer
                     for (let cIdx = 0; cIdx < coaches.length; cIdx++) {
-                        const currentIdx = (basePointer + cIdx) % coaches.length;
+                        const currentIdx = (localPointer + cIdx) % coaches.length;
                         const potentialCoach = coaches[currentIdx];
                         const busyPeriods = allBusyPeriods[potentialCoach.email] || [];
 
@@ -114,7 +117,9 @@ export const GET: APIRoute = async ({ request }) => {
 
                         if (!isBusy) {
                             assignedCoachEmail = potentialCoach.email;
-                            break; // Found free coach!
+                            // Avanzamos el puntero local para el PRÓXIMO slot
+                            localPointer = (currentIdx + 1) % coaches.length;
+                            break; // Encontrado!
                         }
                     }
 

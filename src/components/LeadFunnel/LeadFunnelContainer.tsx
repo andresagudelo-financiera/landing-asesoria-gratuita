@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DynamicForm from './DynamicForm';
 import CalendarPicker from './CalendarPicker';
 import ConfirmationView from './ConfirmationView';
+import { funnelConfig } from './formConfig';
 
 // Fases del Funnel: 
 // 1 = DynamicForm (Perfilamiento)
@@ -30,66 +31,8 @@ interface LeadEnrichment {
     nivel_calificacion: NivelCalificacion;
 }
 
-/**
- * Calcula agencia y fuente a partir del utm_source capturado.
- * Valores posibles de utm_source: 'meta' (Paid Meta Ads) | cualquier otro | vacío.
- */
-function calcularAtribucion(utms: Record<string, string>): Pick<LeadEnrichment, 'agencia' | 'fuente'> {
-    const source = (utms['utm_source'] || '').toLowerCase().trim();
-    if (source === 'meta ads') {
-        return { agencia: 'Escalads Groupe', fuente: 'ADS' };
-    }
-    if (source !== '') {
-        return { agencia: 'Asygnuz', fuente: 'Organico' };
-    }
-    return { agencia: 'Sin atribuir', fuente: 'Directo' };
-}
 
-/**
- * Calcula el nivel de calificación del lead basándose en los ids y values
- * definidos estrictamente en formConfig.ts:
- *   ingresos: 'menos_3m' | '3m_5m' | '5m_10m' | 'mas_10m'
- *   flujo_caja: 'menos_300k' | '300k_800k' | '800k_1.5m' | '1.5m_3m' | 'mas_3m'
- *   capacidad_ahorro: 'menos_500k' | '500k_1.5m' | '1.5m_3m' | 'mas_3m'
- *   capital_liquido: 'menos_5m' | '5m_20m' | '20m_50m' | 'mas_50m'
- */
-function calcularNivelCalificacion(formData: Record<string, string>): NivelCalificacion {
-    const ingresos = formData['ingresos'] ?? '';
-    const flujoCaja = formData['flujo_caja'] ?? '';
-    const capacidadAhorro = formData['capacidad_ahorro'] ?? '';
-    const capitalLiquido = formData['capital_liquido'] ?? '';
 
-    const ahorroAlto = capacidadAhorro === '1.5m_3m' || capacidadAhorro === 'mas_3m';
-    const capitalAlto = capitalLiquido === '20m_50m' || capitalLiquido === 'mas_50m';
-    const flujoMedio = flujoCaja === '800k_1.5m' || flujoCaja === '1.5m_3m' || flujoCaja === 'mas_3m';
-
-    // Alta: ingresos muy altos, o ingresos altos con capacidad de ahorro/capital significativos
-    if (
-        ingresos === 'mas_10m' ||
-        (ingresos === '5m_10m' && ahorroAlto) ||
-        (ingresos === '5m_10m' && capitalAlto)
-    ) {
-        return 'Alta';
-    }
-
-    // Media: ingresos altos sin capital/ahorro suficiente, o ingresos medios con buen flujo
-    if (
-        ingresos === '5m_10m' ||
-        (ingresos === '3m_5m' && flujoMedio)
-    ) {
-        return 'Media';
-    }
-
-    return 'Baja';
-}
-
-/**
- * Event Listener global para abrir el embudo desde botones en Astro
- */
-export const openLeadFunnel = () => {
-    const event = new CustomEvent('open-lead-funnel');
-    window.dispatchEvent(event);
-};
 
 // ==========================================
 // FEATURE TOGGLE PARA AGENDAMIENTO
@@ -123,6 +66,44 @@ const getSavedUTMs = (): Record<string, string> => {
 };
 
 export default function LeadFunnelContainer() {
+    // Helpers internos para asegurar que funnelConfig y otros imports estén en scope
+    const calcularAtribucion = (utms: Record<string, string>): Pick<LeadEnrichment, 'agencia' | 'fuente'> => {
+        const source = (utms['utm_source'] || '').toLowerCase().trim();
+        if (source === 'meta ads') {
+            return { agencia: 'Escalads Groupe', fuente: 'ADS' };
+        }
+        if (source !== '') {
+            return { agencia: 'Asygnuz', fuente: 'Organico' };
+        }
+        return { agencia: 'Asygnuz', fuente: 'Organico' };
+    };
+
+    const calcularNivelCalificacion = (formData: Record<string, string>): NivelCalificacion => {
+        let totalScore = 0;
+        
+        if (!funnelConfig || !funnelConfig.questions) {
+            console.error("[ERROR] funnelConfig no está disponible en calcularNivelCalificacion");
+            return 'Baja';
+        }
+
+        funnelConfig.questions.forEach(question => {
+            if (question.weight && question.options) {
+                const userResponse = formData[question.id];
+                const selectedOption = question.options.find(opt => opt.value === userResponse);
+                
+                if (selectedOption && typeof selectedOption.scoreValue === 'number') {
+                    totalScore += (selectedOption.scoreValue * question.weight);
+                }
+            }
+        });
+
+        console.log(`[QUALIFICATION] Score final: ${totalScore.toFixed(2)}`);
+
+        if (totalScore >= 70) return 'Alta';
+        if (totalScore >= 50) return 'Media';
+        return 'Baja';
+    };
+
     const [isOpen, setIsOpen] = useState(false);
     const [stage, setStage] = useState<FunnelStage>(1);
     const [leadData, setLeadData] = useState<Record<string, string>>({});
@@ -131,12 +112,15 @@ export default function LeadFunnelContainer() {
     const [assignedMeetLink, setAssignedMeetLink] = useState<string | null>(null);
     // [FASE 4] URL de Calendly del coach asignado
     const [calendlyUrl, setCalendlyUrl] = useState<string>('');
+    const [alreadyRegistered, setAlreadyRegistered] = useState(false);
     // [FASE 1] Estado de enriquecimiento: se calcula al completar el formulario
     const [leadEnrichment, setLeadEnrichment] = useState<LeadEnrichment>({
         agencia: 'Sin atribuir',
         fuente: 'Directo',
         nivel_calificacion: 'Baja',
     });
+    const [formProgress, setFormProgress] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         const handleOpen = () => {
@@ -157,6 +141,7 @@ export default function LeadFunnelContainer() {
                 setAssignedCoach(null);
                 setAssignedMeetLink(null);
                 setCalendlyUrl('');
+                setFormProgress(0);
             }
         };
 
@@ -179,6 +164,7 @@ export default function LeadFunnelContainer() {
     if (!isOpen) return null;
 
     const handleFormNext = async (data: Record<string, string>) => {
+        setIsProcessing(true);
         setLeadData(data);
 
         // [FASE 1] Calcular atribución y calificación con los datos recién obtenidos
@@ -187,6 +173,12 @@ export default function LeadFunnelContainer() {
         const nivel_calificacion = calcularNivelCalificacion(data);
         const enrichment: LeadEnrichment = { agencia, fuente, nivel_calificacion };
         setLeadEnrichment(enrichment);
+
+        // Si el lead es calificado como Bajo, redirigir al flujo de descalificados
+        if (nivel_calificacion === 'Baja') {
+            handleFormDisqualified(data);
+            return;
+        }
 
         // Evento GA4: Perfilamiento Completo (Lead) — enriquecido con atribución y calificación
         if (typeof window !== 'undefined' && 'gtag' in window) {
@@ -236,6 +228,7 @@ export default function LeadFunnelContainer() {
                 const result = await res.json();
 
                 if (result.success) {
+                    setAlreadyRegistered(!!result.alreadyRegistered);
                     setAssignedCoach(result.coachName || result.coach || 'Tu Money Strategist(a)');
 
                     // [FASE 4] Guardar calendlyUrl en estado para pasársela a ConfirmationView
@@ -257,6 +250,7 @@ export default function LeadFunnelContainer() {
                 setAssignedCoach('Tu Money Strategist(a)');
             }
 
+            setIsProcessing(false);
             // Stage 3 siempre se muestra (dentro del modal, detrás del popup)
             setStage(3);
         } else {
@@ -266,6 +260,7 @@ export default function LeadFunnelContainer() {
 
     // [FASE 1] Recibe enrichment como parámetro para garantizar consistencia sin depender del estado asíncrono
     const handleSubmitLeadOnly = async (data: Record<string, string>, enrichment: LeadEnrichment = leadEnrichment) => {
+        setIsProcessing(true);
         const utms = getSavedUTMs();
         try {
             const res = await fetch('/api/calendar/schedule', {
@@ -286,6 +281,7 @@ export default function LeadFunnelContainer() {
             const result = await res.json();
 
             if (result.success) {
+                setAlreadyRegistered(!!result.alreadyRegistered);
                 setAssignedCoach(result.coachName || result.coach || "Tu Money Strategist(a)");
             } else {
                 setAssignedCoach("Tu Money Strategist(a)");
@@ -293,6 +289,8 @@ export default function LeadFunnelContainer() {
         } catch (error) {
             console.error("Error bypassing scheduling", error);
             setAssignedCoach("Tu Money Strategist(a)");
+        } finally {
+            setIsProcessing(false);
         }
 
         setAssignedMeetLink(null);
@@ -302,6 +300,7 @@ export default function LeadFunnelContainer() {
 
     // [FASE 1] async: los leads descalificados también se envían a Clint CRM (fire-and-forget, no bloquea la UI)
     const handleFormDisqualified = async (data: Record<string, string>) => {
+        setIsProcessing(true);
         setLeadData(data);
         setStage(4); // UI avanza inmediatamente, el fetch ocurre en background
 
@@ -345,11 +344,15 @@ export default function LeadFunnelContainer() {
         } catch (err) {
             // No propagamos el error: la UX (stage 4) ya está satisfecha
             console.error('[CRM] Error enviando lead descalificado a Clint:', err);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const handleSchedule = async (date: string, time: string, coachEmail: string) => {
+        setIsProcessing(true);
         const utms = getSavedUTMs();
+        // ... rest of the code ...
         // [FASE 1] Usar el enriquecimiento calculado al completar el formulario
         const { agencia, fuente, nivel_calificacion } = leadEnrichment;
 
@@ -374,6 +377,7 @@ export default function LeadFunnelContainer() {
             const data = await res.json();
 
             if (data.success && data.coach) {
+                setAlreadyRegistered(!!data.alreadyRegistered);
                 setAssignedCoach(data.coach.name);
                 setAssignedMeetLink(data.meetLink);
             } else {
@@ -382,6 +386,8 @@ export default function LeadFunnelContainer() {
         } catch (error) {
             console.error("Error scheduling", error);
             setAssignedCoach("Tu Money Strategist(a)");
+        } finally {
+            setIsProcessing(false);
         }
 
         setScheduleData({ date, time });
@@ -411,7 +417,7 @@ export default function LeadFunnelContainer() {
         }
     };
 
-    const currentProgress = stage === 1 ? 33 : stage === 2 ? 66 : 100;
+    const currentProgress = stage === 1 ? formProgress : 100;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
@@ -437,10 +443,19 @@ export default function LeadFunnelContainer() {
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-6 md:p-10 relative custom-scrollbar">
-                    {stage === 1 && (
+                    {isProcessing && (
+                        <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-300">
+                            <div className="w-16 h-16 border-4 border-claudia-accent-green/20 border-t-claudia-accent-green rounded-full animate-spin mb-6"></div>
+                            <h3 className="text-2xl font-bold text-white mb-2">Procesando tus respuestas</h3>
+                            <p className="text-white/60 text-center">Asignando tu Money Strategist.</p>
+                        </div>
+                    )}
+
+                    {!isProcessing && stage === 1 && (
                         <DynamicForm
                             onNext={handleFormNext}
                             onDisqualified={handleFormDisqualified}
+                            onProgressUpdate={setFormProgress}
                         />
                     )}
 
@@ -456,6 +471,7 @@ export default function LeadFunnelContainer() {
                             onClose={() => setIsOpen(false)}
                             coachName={assignedCoach || "Tu Money Strategist(a)"}
                             calendlyUrl={calendlyUrl || undefined}
+                            alreadyRegistered={alreadyRegistered}
                         />
                     )}
 
@@ -487,7 +503,7 @@ export default function LeadFunnelContainer() {
                 <div className="absolute top-0 left-0 w-full h-1 bg-white/5">
                     <div
                         className="h-full bg-claudia-accent-green transition-all duration-700 ease-in-out"
-                        style={{ width: `${stage === 1 ? 33 : stage === 2 ? 66 : 100}%` }}
+                        style={{ width: `${currentProgress}%` }}
                     />
                 </div>
 

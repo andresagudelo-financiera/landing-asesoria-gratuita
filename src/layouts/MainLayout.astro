@@ -5,8 +5,8 @@ interface Props {
 }
 
 const {
-  title = "Asesoría Financiera Gratuita | Finanzas con Claudia Uribe®",
-  description = "Agenda tu sesión de diagnóstico financiero gratuita con un Money Strategist especializado. Identifica tus patrones financieros y traza tu mapa de crecimiento con el equipo de Claudia Uribe.",
+  title = "Sesión Estratégica de Inversión | Finanzas con Claudia Uribe®",
+  description = "Agenda tu sesión estratégica de inversión con un Money Strategist especializado. Identifica tus patrones financieros y traza tu mapa de crecimiento con el equipo de Claudia Uribe.",
 } = Astro.props;
 
 import "../styles/global.css";
@@ -38,8 +38,8 @@ const organizationSchema = {
     "@type": "Country",
     name: "Colombia",
   },
-  serviceType: "Asesoría Financiera",
-  priceRange: "Sesión de diagnóstico gratuita",
+  serviceType: "Planeación Financiera",
+  priceRange: "250 - 1100 USD",
   sameAs: ["https://www.instagram.com/soyclaudiauribe/"],
 };
 
@@ -50,18 +50,18 @@ const faqSchema = {
   mainEntity: [
     {
       "@type": "Question",
-      name: "¿La asesoría financiera es realmente gratis?",
+      name: "¿Cuál es el costo de la sesión estratégica?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Sí, la sesión de diagnóstico es 100% gratuita. Te reunirás con uno de nuestros Money Strategists especializados para evaluar tu situación actual y mostrarte cómo nuestro programa puede ayudarte. No hay compromiso, solo claridad y estrategia.",
+        text: "La sesión estratégica tiene un valor comercial de 250 USD. Sin embargo, para los postulantes que califiquen, la sesión se realiza sin costo como primer paso de nuestro acompañamiento profesional. Si deseas continuar con un acompañamiento más profundo, ofrecemos paquetes de 3 sesiones por 675 USD (ahorras 75 USD) y 5 sesiones por 1,100 USD (ahorras 150 USD).",
       },
     },
     {
       "@type": "Question",
-      name: "¿La asesoría es con Claudia Uribe?",
+      name: "¿La sesión estratégica es con Claudia Uribe?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Todo el proceso —desde la sesión de diagnóstico hasta el acompañamiento continuo— es liderado por nuestros Money Strategists especializados, expertos en planeación financiera. Cada uno de ellos está plenamente capacitado para brindarte un acompañamiento 360.",
+        text: "Todo el proceso —desde la sesión estratégica hasta el acompañamiento completo— es liderado por nuestros Money Strategists especializados. Cada uno está plenamente capacitado para brindarte un acompañamiento 360 bajo la metodología de Claudia Uribe.",
       },
     },
     {
@@ -87,9 +87,9 @@ const faqSchema = {
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  name: "Sesión de Diagnóstico Financiero Gratuita",
+  name: "Sesión Estratégica de Inversión",
   description:
-    "Sesión gratuita con un Money Strategist especializado para identificar tus patrones financieros y trazar tu mapa de crecimiento personalizado.",
+    "Sesión estratégica con un Money Strategist especializado para identificar tus patrones financieros y trazar tu mapa de crecimiento personalizado.",
   provider: {
     "@type": "Organization",
     name: "Finanzas con Claudia Uribe",
@@ -97,11 +97,11 @@ const serviceSchema = {
   serviceType: "Diagnóstico Financiero",
   offers: {
     "@type": "Offer",
-    price: "0",
-    priceCurrency: "COP",
+    price: "250",
+    priceCurrency: "USD",
     availability: "https://schema.org/LimitedAvailability",
     description:
-      "Sesión de diagnóstico financiero gratuita. Cupos limitados por mes.",
+      "Sesión estratégica de inversión avanzada. Cupos limitados por mes.",
   },
 };
 ---
@@ -146,7 +146,7 @@ const serviceSchema = {
     <meta name="author" content="Claudia Uribe - Finanzas con Claudia Uribe" />
     <meta
       name="keywords"
-      content="asesoría financiera gratuita, planeación financiera Colombia, Money Strategist, Claudia Uribe, inversión inteligente, diagnóstico financiero, libertad financiera, acompañamiento financiero"
+      content="sesión estratégica de inversión, planeación financiera Colombia, Money Strategist, Claudia Uribe, inversión inteligente, diagnóstico financiero, libertad financiera, acompañamiento financiero"
     />
 
     <!-- Open Graph / Facebook / WhatsApp -->

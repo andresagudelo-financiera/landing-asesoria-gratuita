@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { calculateScore, type AnswerMap, type ScoreOutput } from '../../utils/scoringEngine';
-import { openLeadFunnel } from '../LeadFunnel/LeadFunnelContainer';
+import { openLeadFunnel } from '../../utils/funnelEvents';
 
 
 const QUESTIONS = [
@@ -374,7 +374,7 @@ function ResultView({ result, onRestart }: { result: ScoreOutput, onRestart: () 
                     onClick={(e) => { e.preventDefault(); openLeadFunnel(); }}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full transition-all text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 text-center"
                 >
-                    Quiero mi asesoría gratuita
+                    Quiero mi sesión estratégica
                 </button>
                 <button onClick={onRestart} className="px-8 py-4 rounded-full font-semibold text-gray-600 border-2 border-transparent hover:border-gray-200 hover:bg-gray-50 transition-all">
                     Volver a evaluar

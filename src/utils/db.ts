@@ -35,6 +35,21 @@ const initDb = () => {
         )
     `).run();
 
+    // Tabla de historial de asignaciones (Deduplicación)
+    db.prepare(`
+        CREATE TABLE IF NOT EXISTS lead_assignments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT,
+            phone TEXT,
+            coach_email TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `).run();
+
+    // Índices para búsquedas rápidas
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_lead_email ON lead_assignments(email)`).run();
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_lead_phone ON lead_assignments(phone)`).run();
+
     // Insertar registro inicial si está vacía
     const row = db.prepare('SELECT COUNT(*) as count FROM assignee_pointer').get() as { count: number } | undefined;
     if (row && row.count === 0) {

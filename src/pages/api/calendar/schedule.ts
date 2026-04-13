@@ -7,8 +7,7 @@ const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4
 const CLINT_BASE_URL = 'https://api.clint.digital/v1';
 
 import { COACH_CONFIG } from '../../../utils/coachConfig';
-
-import { getAndIncrementPointer } from '../../../utils/assigneePointer';
+import { getAndIncrementPointer, checkExistingAssignment, saveAssignment } from '../../../utils/assigneePointer';
 
 
 // [FASE 4] Google Calendar desconectado — importación eliminada
@@ -54,13 +53,13 @@ export const POST: APIRoute = async ({ request }) => {
                     "phone":              `${ddiBaja}${numBaja}`,
                     "ocupacion":          "none",
                     "ingreso":            data.leadDetails.ingresos     || '',
-                    "ahorro":             data.leadDetails.capacidad_ahorro  || '',
-                    "ahorrado":           data.leadDetails.flujo_caja        || '',
-                    "patrimonio":         data.leadDetails.capital_liquido   || '',
+                    "ahorro":             data.leadDetails.flujo_caja    || '', // Lo que queda al mes
+                    "ahorrado":           data.leadDetails.capital_disponible || '', // Capital ahorrado
+                    "patrimonio":         data.leadDetails.declara_renta || '', // Estado declaración / patrimonio
                     "objetivo":           data.leadDetails.objetivo     || '',
                     "coach":              "Sin asignar",
-                    "agencia":            data.leadDetails.agencia           || "Sin atribuir",
-                    "fuente":             data.leadDetails.fuente            || "Directo",
+                    "agencia":            data.leadDetails.agencia           || "Asygnuz",
+                    "fuente":             data.leadDetails.fuente            || "Organico",
                     "nivel_calificacion": data.leadDetails.nivel_calificacion,
                 };
 
@@ -103,9 +102,9 @@ export const POST: APIRoute = async ({ request }) => {
         const clintUsers = await clintRes.json();
         const usersArray = clintUsers.data || clintUsers;
 
-        // 2. Filter only valid & active coaches, forcing the order of COACH_CONFIG, merging with Clint User IDs
+        // 2. Filter only valid & active coaches WITH calendlyUrl, forcing the order of COACH_CONFIG, merging with Clint User IDs
         const coaches = COACH_CONFIG
-            .filter(config => config.active !== false)
+            .filter(config => config.active !== false && config.calendlyUrl)
             .map(config => {
                 const clintUser = usersArray.find((user: any) => user.email?.toLowerCase() === config.email);
                 if (clintUser) {
@@ -117,21 +116,47 @@ export const POST: APIRoute = async ({ request }) => {
 
         if (coaches.length === 0) throw new Error('No valid coaches available in Clint');
 
-        // 2. Lógica de Asignación (Recibir coach o usar Round-Robin como fallback)
-        const pointer = getAndIncrementPointer(coaches.length);
-        let assignedCoach = coaches[0]; // Default
+        // 2. Lógica de Asignación (Deduplicación -> Coach específico -> Round-Robin)
+        let assignedCoach = coaches[0]; // Default fallback
+        let alreadyRegistered = false;
         const requestedCoachEmail = data.coachEmail;
+        const leadEmail = data.leadDetails?.email;
+        const leadPhone = data.leadDetails?.telefono;
 
-        if (requestedCoachEmail) {
-            const matchedCoach = coaches.find((c: any) => c.email?.toLowerCase() === requestedCoachEmail.toLowerCase());
-            if (matchedCoach) {
-                assignedCoach = matchedCoach;
-            } else {
-                console.warn(`Requested coach ${requestedCoachEmail} not found, falling back to Round-Robin`);
-                assignedCoach = coaches[pointer];
+        // --- CHECK DEDUPLICACIÓN ---
+        const existingCoachEmail = checkExistingAssignment(leadEmail, leadPhone);
+        
+        if (existingCoachEmail) {
+            const matchedExiting = coaches.find((c: any) => c.email?.toLowerCase() === existingCoachEmail.toLowerCase());
+            if (matchedExiting) {
+                assignedCoach = matchedExiting;
+                alreadyRegistered = true;
+                console.log(`[DEDUPLICACIÓN] Lead ya registrado con coach: ${assignedCoach.email}`);
             }
-        } else {
-            assignedCoach = coaches[pointer];
+        }
+
+        if (!alreadyRegistered) {
+            if (requestedCoachEmail) {
+                // Coach preseleccionado: NO consumir el puntero
+                const matchedCoach = coaches.find((c: any) => c.email?.toLowerCase() === requestedCoachEmail.toLowerCase());
+                if (matchedCoach) {
+                    assignedCoach = matchedCoach;
+                    console.log(`[ROUND-ROBIN] Coach preseleccionado: ${assignedCoach.email}`);
+                } else {
+                    // Coach solicitado no existe → fallback a Round-Robin (sí consume el puntero)
+                    console.warn(`[ROUND-ROBIN] Coach ${requestedCoachEmail} no encontrado, usando Round-Robin`);
+                    const pointer = getAndIncrementPointer(coaches.length);
+                    assignedCoach = coaches[pointer];
+                }
+            } else {
+                // Sin coach específico → Round-Robin puro
+                const pointer = getAndIncrementPointer(coaches.length);
+                assignedCoach = coaches[pointer];
+                console.log(`[ROUND-ROBIN] Usando índice ${pointer} → ${assignedCoach.email}`);
+            }
+            
+            // Registrar nueva asignación para futuras peticiones (Deduplicación)
+            saveAssignment(leadEmail, leadPhone, assignedCoach.email);
         }
 
 
@@ -170,14 +195,14 @@ export const POST: APIRoute = async ({ request }) => {
                 "phone": `${ddi}${phoneNum}`,
                 "ocupacion": "none",
                 "ingreso": data.leadDetails.ingresos || "",
-                "ahorro": data.leadDetails.capacidad_ahorro || "",
-                "ahorrado": data.leadDetails.flujo_caja || "",
-                "patrimonio": data.leadDetails.capital_liquido || "",
+                "ahorro": data.leadDetails.flujo_caja || "",
+                "ahorrado": data.leadDetails.capital_disponible || "",
+                "patrimonio": data.leadDetails.declara_renta || "",
                 "objetivo": data.leadDetails.objetivo || "",
                 "coach": assignedCoach.email,
                 // [FASE 1] Campos de enriquecimiento enviados por el frontend
-                "agencia": data.leadDetails.agencia || "Sin atribuir",
-                "fuente": data.leadDetails.fuente || "Directo",
+                "agencia": data.leadDetails.agencia || "Asygnuz",
+                "fuente": data.leadDetails.fuente || "Organico",
                 "nivel_calificacion": data.leadDetails.nivel_calificacion || "Baja",
             };
 
@@ -234,6 +259,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         return new Response(JSON.stringify({
             success: true,
+            alreadyRegistered,
             coach: assignedCoach.email,
             coachName: coachDisplayName,
             calendlyUrl: coachConfig?.calendlyUrl || 'https://calendly.com/default-financiera'
@@ -282,7 +308,7 @@ async function sendBackupEmail(
         <!-- Body -->
         <tr><td style="padding:40px;">
           <p style="color:#e0e0e0;font-size:16px;line-height:1.7;margin:0 0 16px;">Hola <strong style="color:#ffffff;">${leadName}</strong>,</p>
-          <p style="color:#b0b0b0;font-size:15px;line-height:1.7;margin:0 0 24px;">Hemos recibido tu solicitud y te hemos asignado a <strong style="color:#ff9800;">${coachName}</strong>, quien ser&aacute; tu Money Strategist personal para la sesi&oacute;n de diagn&oacute;stico gratuita.</p>
+          <p style="color:#b0b0b0;font-size:15px;line-height:1.7;margin:0 0 24px;">Hemos recibido tu solicitud y te hemos asignado a <strong style="color:#ff9800;">${coachName}</strong>, quien ser&aacute; tu Money Strategist personal para tu sesi&oacute;n estrat&eacute;gica de inversi&oacute;n.</p>
           <p style="color:#b0b0b0;font-size:15px;line-height:1.7;margin:0 0 32px;">Haz clic en el bot&oacute;n para elegir la fecha y hora que mejor te convenga:</p>
           <!-- CTA Button -->
           <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding-bottom:32px;">

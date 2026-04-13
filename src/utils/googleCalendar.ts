@@ -70,8 +70,8 @@ export async function createGoogleMeetEvent(coachEmail: string, studentEmail: st
     const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
 
     const eventPayload = {
-        summary: `Asesoría Gratuita - ${studentName}`,
-        description: `Asesoría Gratuita. Contacto: ${studentEmail}`,
+        summary: `Sesión Estratégica - ${studentName}`,
+        description: `Sesión Estratégica de Inversión. Contacto: ${studentEmail}`,
         start: {
             dateTime: startDate.toISOString(),
             timeZone: 'America/Bogota'

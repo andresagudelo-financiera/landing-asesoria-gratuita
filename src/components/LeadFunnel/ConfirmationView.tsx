@@ -4,12 +4,14 @@ interface ConfirmationViewProps {
     onClose: () => void;
     coachName?: string;
     calendlyUrl?: string;
+    alreadyRegistered?: boolean;
 }
 
 export default function ConfirmationView({
     onClose,
     coachName = "Tu Money Strategist(a)",
     calendlyUrl,
+    alreadyRegistered = false,
 }: ConfirmationViewProps) {
 
     const handleReopenCalendly = () => {
@@ -32,10 +34,13 @@ export default function ConfirmationView({
             </div>
 
             <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                ¡Estás a un paso!
+                {alreadyRegistered ? '¡Ya estás registrado!' : '¡Estás a un paso!'}
             </h3>
             <p className="text-white/70 text-lg mb-8 max-w-md">
-                Hemos asignado tu sesión a <strong className="text-white">{coachName}</strong>. Por favor, elige la fecha y hora en la ventana emergente para confirmar tu cita.
+                {alreadyRegistered 
+                  ? <>Te esperamos en tu <strong>sesión estratégica</strong> con {coachName}.</> 
+                  : <>Hemos asignado tu sesión a <strong className="text-white">{coachName}</strong>. Por favor, elige la fecha y hora en la ventana emergente para confirmar tu cita.</>
+                }
             </p>
 
             {/* Tarjeta de información */}
