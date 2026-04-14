@@ -91,7 +91,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         let debugLogs = [];
-        debugLogs.push(`[GHL] Creating Lead for ${data.leadDetails.email}`);
+        debugLogs.push(`[GHL] Creating Lead for ${data.leadDetails.email} with lead_id: ${data.leadDetails.lead_id || 'EMPTY'}`);
 
         const fullName = data.leadDetails.nombre || 'Sin Nombre';
 

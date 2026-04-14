@@ -308,8 +308,19 @@ const serviceSchema = {
       // 2. GTM Tracking Helper
       window.trackEvent = function (eventName, eventData = {}) {
         window.dataLayer = window.dataLayer || [];
+
+        // Recuperar UTMs guardados para inyectarlos en cada evento
+        let utmParams = {};
+        try {
+          const stored = sessionStorage.getItem("saved_utms");
+          if (stored) {
+            utmParams = JSON.parse(stored);
+          }
+        } catch (e) {}
+
         window.dataLayer.push({
           event: eventName,
+          ...utmParams,
           ...eventData,
         });
       };

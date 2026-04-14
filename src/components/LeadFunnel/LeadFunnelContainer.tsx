@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DynamicForm from './DynamicForm';
 import CalendarPicker from './CalendarPicker';
 import ConfirmationView from './ConfirmationView';
@@ -121,20 +121,32 @@ export default function LeadFunnelContainer() {
     const [formProgress, setFormProgress] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
     const [leadId, setLeadId] = useState<string>('');
+    const leadIdRef = useRef<string>('');
 
     useEffect(() => {
         const handleOpen = () => {
             const newId = generateLeadId();
             setLeadId(newId);
+            leadIdRef.current = newId;
             setIsOpen(true);
 
             // Sincronizar ID con Clarity y GTM de inmediato
             if (typeof window !== 'undefined') {
+                const utms = getSavedUTMs();
+                // Inyectar en dataLayer para GTM (Variable de capa de datos)
+                (window as any).dataLayer = (window as any).dataLayer || [];
+                (window as any).dataLayer.push({
+                    lead_id: newId,
+                    ...utms
+                });
+
                 if ('gtag' in window) {
                     (window as any).gtag('set', 'user_properties', { lead_id: newId });
                     (window as any).gtag('event', 'lead_form_start', {
                         lead_id: newId,
-                        source: 'cta_button'
+                        source: 'cta_button',
+                        cta_source: 'cta_button',
+                        ...utms
                     });
                 }
                 if (typeof (window as any).clarity === 'function') {
@@ -199,7 +211,8 @@ export default function LeadFunnelContainer() {
                 agencia,
                 fuente,
                 calificacion_lead: nivel_calificacion,
-                lead_id: leadId,
+                ...utms,
+                lead_id: leadIdRef.current,
             });
         }
 
@@ -233,7 +246,7 @@ export default function LeadFunnelContainer() {
                             agencia: ag,
                             fuente: fu,
                             nivel_calificacion: nc,
-                            lead_id: leadId,
+                            lead_id: leadIdRef.current,
                         },
                     }),
                 });
@@ -287,7 +300,7 @@ export default function LeadFunnelContainer() {
                         agencia: enrichment.agencia,
                         fuente: enrichment.fuente,
                         nivel_calificacion: enrichment.nivel_calificacion,
-                        lead_id: leadId,
+                        lead_id: leadIdRef.current,
                     }
                 })
             });
@@ -332,7 +345,8 @@ export default function LeadFunnelContainer() {
                 agencia,
                 fuente,
                 calificacion_lead: nivel_calificacion,
-                lead_id: leadId,
+                ...utms,
+                lead_id: leadIdRef.current,
             });
         }
 
@@ -352,7 +366,7 @@ export default function LeadFunnelContainer() {
                         agencia,
                         fuente,
                         nivel_calificacion,
-                        lead_id: leadId,
+                        lead_id: leadIdRef.current,
                     },
                 }),
             });
@@ -386,7 +400,7 @@ export default function LeadFunnelContainer() {
                         agencia,
                         fuente,
                         nivel_calificacion,
-                        lead_id: leadId,
+                        lead_id: leadIdRef.current,
                     }
                 })
             });
@@ -419,6 +433,8 @@ export default function LeadFunnelContainer() {
                 agencia,
                 fuente,
                 calificacion_lead: nivel_calificacion,
+                ...utms,
+                lead_id: leadIdRef.current,
             });
         }
 
