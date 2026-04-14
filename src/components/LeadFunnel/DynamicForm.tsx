@@ -14,6 +14,8 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [error, setError] = useState('');
+    const [isCheckingLead, setIsCheckingLead] = useState(false);
+    const [leadWarning, setLeadWarning] = useState('');
 
     const question: Question | undefined = funnelConfig.questions[currentStepIndex];
 
@@ -34,7 +36,7 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
 
     if (!question) return null;
 
-    const handleNext = (overrideAnswer?: string) => {
+    const handleNext = async (overrideAnswer?: string) => {
         const answer = overrideAnswer !== undefined ? overrideAnswer : (answers[question.id] || '');
         if (question.required && (!answer || answer.trim() === '')) {
             setError('Por favor, completa este campo para continuar.');
@@ -48,6 +50,26 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                 setError('Por favor, ingresa un correo electrónico válido.');
                 return;
             }
+
+            // [NUEVO] Validar si ya existe el lead (Solo si no hemos validado este mismo email antes)
+            setIsCheckingLead(true);
+            try {
+                const res = await fetch('/api/leads/check-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: answer.trim() })
+                });
+                const data = await res.json();
+                if (data.exists) {
+                    setLeadWarning('Ya estás registrado en nuestra base de datos. Continuaremos para actualizar tu perfil.');
+                } else {
+                    setLeadWarning('');
+                }
+            } catch (e) {
+                console.error('Error checking lead existence:', e);
+            } finally {
+                setIsCheckingLead(false);
+            }
         }
 
         if (question.type === 'tel') {
@@ -56,6 +78,26 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
             if (!phoneRegex.test(cleanPhone)) {
                 setError('Por favor, ingresa un número de teléfono válido con su indicativo.');
                 return;
+            }
+
+            // [NUEVO] Validar si ya existe el lead por teléfono
+            setIsCheckingLead(true);
+            try {
+                const res = await fetch('/api/leads/check-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: cleanPhone })
+                });
+                const data = await res.json();
+                if (data.exists) {
+                    setLeadWarning('Este número ya está registrado. Continuaremos para actualizar tu perfil.');
+                } else {
+                    setLeadWarning('');
+                }
+            } catch (e) {
+                console.error('Error checking lead existence:', e);
+            } finally {
+                setIsCheckingLead(false);
             }
         }
 
@@ -159,6 +201,11 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                                     placeholder={question.placeholder}
                                     className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-white text-lg focus:outline-none focus:border-claudia-accent-green focus:bg-white/10 transition-all placeholder:text-white/30"
                                 />
+                                {leadWarning && question.type === 'email' && (
+                                    <p className="text-claudia-accent-orange text-sm font-medium mt-1 animate-in fade-in slide-in-from-top-1">
+                                        {leadWarning}
+                                    </p>
+                                )}
                             </div>
                         )}
 
@@ -256,6 +303,11 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                                     enableSearch={true}
                                     masks={{ co: '... ... ....' }}
                                 />
+                                {leadWarning && question.type === 'tel' && (
+                                    <p className="text-claudia-accent-orange text-sm font-medium mt-1 animate-in fade-in slide-in-from-top-1">
+                                        {leadWarning}
+                                    </p>
+                                )}
                             </div>
                         )}
 

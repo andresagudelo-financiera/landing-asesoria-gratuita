@@ -328,7 +328,7 @@ export default function LeadFunnelContainer() {
     const handleFormDisqualified = async (data: Record<string, string>) => {
         setIsProcessing(true);
         setLeadData(data);
-        setStage(4); // UI avanza inmediatamente, el fetch ocurre en background
+        setStage(3); // UI unificada en ConfirmationView
 
         // [FASE 1] Calcular atribución para descalificados (fuente es igualmente valiosa para analítica)
         const utms = getSavedUTMs();
@@ -504,31 +504,10 @@ export default function LeadFunnelContainer() {
                             coachName={assignedCoach || "Tu Money Strategist(a)"}
                             calendlyUrl={calendlyUrl || undefined}
                             alreadyRegistered={alreadyRegistered}
+                            nivelCalificacion={leadEnrichment.nivel_calificacion}
                         />
                     )}
 
-                    {stage === 4 && (
-                        <div className="flex flex-col items-center justify-center text-center h-full animate-in zoom-in duration-500">
-                            <div className="w-20 h-20 bg-claudia-accent-orange/10 rounded-full flex items-center justify-center text-claudia-accent-orange mb-6 shadow-[0_0_30px_rgba(255,152,0,0.2)]">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">¡Gracias por tu interés!</h2>
-                            <p className="text-white/70 text-lg mb-8 max-w-md">
-                                Hemos recibido tus respuestas, pronto uno de nuestros Money Strategists se comunicará contigo.
-                            </p>
-                            <button
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    window.open('https://www.instagram.com/soyclaudiauribe/', '_blank');
-                                }}
-                                className="px-8 py-4 bg-claudia-accent-orange text-white rounded-full font-bold uppercase tracking-wider hover:scale-105 hover:shadow-[0_0_20px_rgba(255,152,0,0.3)] transition-all"
-                            >
-                                Seguir a Claudia en Instagram
-                            </button>
-                        </div>
-                    )}
                 </div>
 
                 {/* Progress Bar Header */}
