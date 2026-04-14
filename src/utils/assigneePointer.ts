@@ -52,7 +52,6 @@ export function getAndIncrementPointer(totalCoaches: number): number {
             'UPDATE assignee_pointer SET current_index = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
         ).run(nextIndex, POINTER_ID);
 
-        console.log(`[Pointer] Round-robin: using index ${currentIndex}, next will be ${nextIndex} (total: ${totalCoaches})`);
 
         // Return current index for this assignment
         return currentIndex;
@@ -104,8 +103,7 @@ export function saveAssignment(email: string | undefined, phone: string | undefi
         db.prepare(
             'INSERT INTO lead_assignments (email, phone, coach_email) VALUES (?, ?, ?)'
         ).run(cleanEmail, cleanPhone, coachEmail);
-        
-        console.log(`[Pointer] Saved assignment for ${cleanEmail || 'unknown'} / ${cleanPhone || 'unknown'} -> ${coachEmail}`);
+
     } catch (e) {
         console.error('[Pointer] Error saving assignment:', e);
     }
@@ -120,7 +118,6 @@ export function resetPointer(index: number = 0): void {
         db.prepare(
             'UPDATE assignee_pointer SET current_index = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
         ).run(index, POINTER_ID);
-        console.log(`[Pointer] Reset to index ${index}`);
     } catch (e) {
         console.error('[Pointer] Error resetting pointer:', e);
     }

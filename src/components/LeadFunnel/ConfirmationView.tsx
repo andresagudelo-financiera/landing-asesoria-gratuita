@@ -5,6 +5,7 @@ interface ConfirmationViewProps {
     coachName?: string;
     calendlyUrl?: string;
     alreadyRegistered?: boolean;
+    nivelCalificacion?: 'Alta' | 'Media' | 'Baja';
 }
 
 export default function ConfirmationView({
@@ -12,6 +13,7 @@ export default function ConfirmationView({
     coachName = "Tu Money Strategist(a)",
     calendlyUrl,
     alreadyRegistered = false,
+    nivelCalificacion = 'Media',
 }: ConfirmationViewProps) {
 
     const handleReopenCalendly = () => {
@@ -34,44 +36,44 @@ export default function ConfirmationView({
             </div>
 
             <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                {alreadyRegistered ? '¡Ya estás registrado!' : '¡Estás a un paso!'}
+                ¡Gracias por registrarte!
             </h3>
             <p className="text-white/70 text-lg mb-8 max-w-md">
-                {alreadyRegistered 
-                  ? <>Te esperamos en tu <strong>sesión estratégica</strong> con {coachName}.</> 
-                  : <>Hemos asignado tu sesión a <strong className="text-white">{coachName}</strong>. Por favor, elige la fecha y hora en la ventana emergente para confirmar tu cita.</>
+                {alreadyRegistered
+                    ? <>Te esperamos en tu <strong>sesión estratégica</strong> con tu Money Strategist.</>
+                    : (nivelCalificacion === 'Baja'
+                        ? <>Sigue a Claudia en redes. Un <strong>Money Strategist</strong> se comunicará contigo próximamente para brindarte más información.</>
+                        : <>Hemos enviado tus datos a nuestro equipo de estrategas. Te llegará un correo con las instrucciones para realizar tu agendamiento con tu <strong>Money Strategist</strong>.</>
+                    )
                 }
             </p>
 
             {/* Tarjeta de información */}
-            <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 text-left">
+            {/*       <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 text-left">
                 <div className="flex flex-col gap-4">
                     <div>
-                        <span className="block text-xs text-white/40 uppercase tracking-widest font-bold">Con quién</span>
+                        <span className="block text-xs text-white/40 uppercase tracking-widest font-bold">Money Strategist Asignado</span>
                         <span className="block text-white font-medium text-lg mt-1 break-words break-all">{coachName}</span>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
-            {/* Botón de rescate: reabrir popup de Calendly */}
-            {calendlyUrl && (
-                <div className="w-full max-w-sm bg-claudia-accent-orange/10 border border-claudia-accent-orange/30 rounded-2xl p-5 mb-6 text-center">
-                    <p className="text-white/60 text-sm mb-3">¿Se cerró el calendario?</p>
+            <div className="flex flex-col gap-3 w-full max-w-sm">
+                {nivelCalificacion === 'Baja' && (
                     <button
-                        onClick={handleReopenCalendly}
-                        className="w-full px-8 py-3 bg-claudia-accent-orange text-white rounded-full font-bold uppercase tracking-wider hover:scale-105 hover:shadow-[0_0_20px_rgba(255,152,0,0.3)] transition-all"
+                        onClick={() => window.open('https://www.instagram.com/soyclaudiauribe/', '_blank')}
+                        className="px-10 py-4 bg-claudia-accent-orange text-white rounded-full font-bold uppercase tracking-wider hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,152,0,0.3)]"
                     >
-                        Reabrir para agendar
+                        Seguir a Claudia en Instagram
                     </button>
-                </div>
-            )}
-
-            <button
-                onClick={onClose}
-                className="px-10 py-3 bg-white/10 text-white rounded-full font-bold uppercase tracking-wider hover:bg-white/20 transition-all border border-white/20"
-            >
-                Volver a la página
-            </button>
+                )}
+                <button
+                    onClick={onClose}
+                    className="px-10 py-3 bg-white/10 text-white rounded-full font-bold uppercase tracking-wider hover:bg-white/20 transition-all border border-white/20"
+                >
+                    Volver a la página
+                </button>
+            </div>
 
         </div>
     );

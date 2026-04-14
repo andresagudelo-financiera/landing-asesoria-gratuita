@@ -4,11 +4,11 @@ import CalendarPicker from './CalendarPicker';
 import ConfirmationView from './ConfirmationView';
 import { funnelConfig } from './formConfig';
 
-// Fases del Funnel: 
 // 1 = DynamicForm (Perfilamiento)
 // 2 = CalendarPicker (Agendamiento)
 // 3 = ConfirmationView (Finalizado)
 // 4 = DisqualifiedView (Fin de perfilamiento sin agenda)
+import { generateLeadId } from '../../utils/generateLeadId';
 type FunnelStage = 1 | 2 | 3 | 4;
 
 // ==========================================
@@ -39,7 +39,7 @@ interface LeadEnrichment {
 // ==========================================
 // Cambia a 'true' para permitir agendar en Google Calendar.
 // Cambia a 'false' para capturar el lead pero NO pedir fecha de reunión.
-const ENABLE_CALENDAR_SCHEDULING = true;
+const ENABLE_CALENDAR_SCHEDULING = false;
 const getSavedUTMs = (): Record<string, string> => {
     if (typeof window === 'undefined') return {};
 
@@ -80,7 +80,7 @@ export default function LeadFunnelContainer() {
 
     const calcularNivelCalificacion = (formData: Record<string, string>): NivelCalificacion => {
         let totalScore = 0;
-        
+
         if (!funnelConfig || !funnelConfig.questions) {
             console.error("[ERROR] funnelConfig no está disponible en calcularNivelCalificacion");
             return 'Baja';
@@ -90,14 +90,13 @@ export default function LeadFunnelContainer() {
             if (question.weight && question.options) {
                 const userResponse = formData[question.id];
                 const selectedOption = question.options.find(opt => opt.value === userResponse);
-                
+
                 if (selectedOption && typeof selectedOption.scoreValue === 'number') {
                     totalScore += (selectedOption.scoreValue * question.weight);
                 }
             }
         });
 
-        console.log(`[QUALIFICATION] Score final: ${totalScore.toFixed(2)}`);
 
         if (totalScore >= 70) return 'Alta';
         if (totalScore >= 50) return 'Media';
@@ -121,20 +120,31 @@ export default function LeadFunnelContainer() {
     });
     const [formProgress, setFormProgress] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [leadId, setLeadId] = useState<string>('');
 
     useEffect(() => {
         const handleOpen = () => {
+            const newId = generateLeadId();
+            setLeadId(newId);
             setIsOpen(true);
 
-            // Evento GA4: Inicio de embudo
-            if (typeof window !== 'undefined' && 'gtag' in window) {
-                (window as any).gtag('event', 'lead_form_start', {
-                    source: 'cta_button'
-                });
+            // Sincronizar ID con Clarity y GTM de inmediato
+            if (typeof window !== 'undefined') {
+                if ('gtag' in window) {
+                    (window as any).gtag('set', 'user_properties', { lead_id: newId });
+                    (window as any).gtag('event', 'lead_form_start', {
+                        lead_id: newId,
+                        source: 'cta_button'
+                    });
+                }
+                if (typeof (window as any).clarity === 'function') {
+                    (window as any).clarity("set", "lead_id", newId);
+                    (window as any).clarity("identify", newId);
+                }
             }
 
-            // Solo resetear si ya está en la etapa 3 o 4
-            if (stage === 4) {
+            // Solo resetear si ya está en la etapa 3 o 4 (re-apertura tras éxito)
+            if (stage === 3 || stage === 4) {
                 setStage(1);
                 setLeadData({});
                 setScheduleData(null);
@@ -275,6 +285,7 @@ export default function LeadFunnelContainer() {
                         agencia: enrichment.agencia,
                         fuente: enrichment.fuente,
                         nivel_calificacion: enrichment.nivel_calificacion,
+                        lead_id: leadId,
                     }
                 })
             });

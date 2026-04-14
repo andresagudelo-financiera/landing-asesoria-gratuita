@@ -54,7 +54,6 @@ const initDb = () => {
     const row = db.prepare('SELECT COUNT(*) as count FROM assignee_pointer').get() as { count: number } | undefined;
     if (row && row.count === 0) {
         db.prepare('INSERT INTO assignee_pointer (id, current_index) VALUES (1, 0)').run();
-        console.log('[DB] Initialized assignee_pointer to 0');
 
         // Migración del archivo JSON antiguo con index persistente
         try {
@@ -68,7 +67,6 @@ const initDb = () => {
                 const parsed = JSON.parse(data);
                 if (typeof parsed.index === 'number') {
                     db.prepare('UPDATE assignee_pointer SET current_index = ? WHERE id = 1').run(parsed.index);
-                    console.log(`[DB] Migrated assignee pointer from JSON: ${parsed.index}`);
                 }
             }
         } catch (migrationError) {

@@ -70,7 +70,12 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                 setIsTransitioning(false);
             } else {
                 // Formulario terminado, la calificación se calcula en el contenedor
-                onNext(answers);
+                // [FIX] Usar el valor más reciente para evitar desfase de estado asíncrono
+                const finalAnswers = { ...answers };
+                if (overrideAnswer !== undefined) {
+                    finalAnswers[question.id] = overrideAnswer;
+                }
+                onNext(finalAnswers);
             }
         }, 300);
     };

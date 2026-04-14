@@ -217,8 +217,14 @@ const serviceSchema = {
     </noscript>
 
     <!-- Calendly Widget -->
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+    <link
+      href="https://assets.calendly.com/assets/external/widget.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://assets.calendly.com/assets/external/widget.js"
+      type="text/javascript"
+      async></script>
 
     <!-- Styles -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -234,6 +240,13 @@ const serviceSchema = {
 
     <!-- UTM Persistence & GTM Tracking Scripts -->
     <script is:inline>
+      // Hydration Bridge: Capture modal open requests before React is ready
+      window.addEventListener("open-lead-funnel", () => {
+        if (!window.__LEAD_FUNNEL_HYDRATED__) {
+          window.__OPEN_FUNNEL_PENDING__ = true;
+        }
+      });
+
       // 1. UTM Persistence
       function getUTMs() {
         const params = new URLSearchParams(window.location.search);

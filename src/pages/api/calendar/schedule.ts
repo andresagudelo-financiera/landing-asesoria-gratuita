@@ -3,9 +3,6 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
-const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4eVYOXuSv4BRdBTeDEgswf2I7Ym6tw==';
-const CLINT_BASE_URL = 'https://api.clint.digital/v1';
-
 import { COACH_CONFIG } from '../../../utils/coachConfig';
 import { getAndIncrementPointer, checkExistingAssignment, saveAssignment } from '../../../utils/assigneePointer';
 
@@ -18,7 +15,6 @@ export const POST: APIRoute = async ({ request }) => {
         let data: any = {};
         try {
             data = await request.json();
-            console.log("SCHEDULE PAYLOAD RECEIVED:", data);
         } catch (err: any) {
             console.error("Payload read error:", err.message);
             return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
@@ -26,142 +22,76 @@ export const POST: APIRoute = async ({ request }) => {
 
         // [FASE 4] Validación simplificada: solo requerimos leadDetails (date/time ya no existen)
         if (!data || !data.leadDetails) {
-            console.log("Validation failed. Missing leadDetails.");
             return new Response(JSON.stringify({ error: 'Faltan detalles del lead' }), { status: 400 });
         }
 
-        // ─── FASE 2.1: CONGELADOR — Early return para leads descalificados ───────
-        if (data.leadDetails?.nivel_calificacion === "Baja") {
-            try {
-                const rawPhoneBaja = (data.leadDetails.telefono || '').replace(/[^\d]/g, '');
-                let ddiBaja  = "+57";
-                let numBaja  = rawPhoneBaja;
-                if (rawPhoneBaja.startsWith('57') && rawPhoneBaja.length > 10) {
-                    numBaja = rawPhoneBaja.substring(2);
-                } else if (rawPhoneBaja.length > 10 && !rawPhoneBaja.startsWith('3')) {
-                    ddiBaja = `+${rawPhoneBaja.substring(0, 2)}`;
-                    numBaja = rawPhoneBaja.substring(2);
-                }
-
-                const fullNameBaja = data.leadDetails.nombre || 'Sin Nombre';
-                const namePartsBaja = fullNameBaja.split(' ');
-
-                const webhookPayload: Record<string, string> = {
-                    "name":               namePartsBaja[0] || '',
-                    "last-name":          namePartsBaja.slice(1).join(' ') || '',
-                    "email":              data.leadDetails.email        || '',
-                    "phone":              `${ddiBaja}${numBaja}`,
-                    "ocupacion":          "none",
-                    "ingreso":            data.leadDetails.ingresos     || '',
-                    "ahorro":             data.leadDetails.flujo_caja    || '', // Lo que queda al mes
-                    "ahorrado":           data.leadDetails.capital_disponible || '', // Capital ahorrado
-                    "patrimonio":         data.leadDetails.declara_renta || '', // Estado declaración / patrimonio
-                    "objetivo":           data.leadDetails.objetivo     || '',
-                    "coach":              "Sin asignar",
-                    "agencia":            data.leadDetails.agencia           || "Asygnuz",
-                    "fuente":             data.leadDetails.fuente            || "Organico",
-                    "nivel_calificacion": data.leadDetails.nivel_calificacion,
-                };
-
-                // Append UTM parameters dynamically
-                Object.keys(data.leadDetails).forEach(key => {
-                    if (key.startsWith('utm_')) webhookPayload[key] = data.leadDetails[key];
-                });
-
-                console.log("[CONGELADOR] Lead Baja interceptado. Enviando a nutrición:", webhookPayload);
-
-                await fetch(
-                    'https://functions-api.clint.digital/endpoints/integration/webhook/f2ee93c4-59f5-45d1-8802-b9619058f259',
-                    {
-                        method:  'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                        body:    JSON.stringify(webhookPayload),
-                    }
-                );
-            } catch (bajaError: any) {
-                console.error("[CONGELADOR] Error al enviar lead Baja a nutrición:", bajaError.message);
-            }
-
-            return new Response(
-                JSON.stringify({ success: true, message: "Lead derivado a nutrición", skipCalendar: true }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } }
-            );
-        }
         // ─────────────────────────────────────────────────────────────────────────
 
-        // 1. Obtener lista de coaches desde Clint en tiempo real
-        const clintRes = await fetch(`${CLINT_BASE_URL}/users`, {
-            method: 'GET',
-            headers: {
-                'api-token': CLINT_API_KEY,
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!clintRes.ok) throw new Error('Failed to load coaches');
-        const clintUsers = await clintRes.json();
-        const usersArray = clintUsers.data || clintUsers;
-
-        // 2. Filter only valid & active coaches WITH calendlyUrl, forcing the order of COACH_CONFIG, merging with Clint User IDs
+        // 1. Obtener lista de coaches desde configuración local (Fuente de Verdad única para GHL)
         const coaches = COACH_CONFIG
             .filter(config => config.active !== false && config.calendlyUrl)
             .map(config => {
-                const clintUser = usersArray.find((user: any) => user.email?.toLowerCase() === config.email);
-                if (clintUser) {
-                    return { ...clintUser, configLeader: config.leader, configWebhook: config.webhook };
-                }
-                return null;
-            })
-            .filter(Boolean);
+                const nameParts = config.email.split('@')[0].split('.');
+                const capitalize = (s: string) => s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+                return {
+                    email: config.email,
+                    configLeader: config.leader,
+                    configWebhook: config.webhook,
+                    calendlyUrl: config.calendlyUrl,
+                    first_name: capitalize(nameParts[0] || ''),
+                    last_name: capitalize(nameParts[1] || '')
+                };
+            });
 
-        if (coaches.length === 0) throw new Error('No valid coaches available in Clint');
+        if (coaches.length === 0) throw new Error('No valid coaches available in configuration');
 
         // 2. Lógica de Asignación (Deduplicación -> Coach específico -> Round-Robin)
-        let assignedCoach = coaches[0]; // Default fallback
+        const ENABLE_ROUND_ROBIN = false; // [DESHABILITADO PARA GHL]
+        const ENABLE_BACKUP_EMAIL = false; // [DESHABILITADO PARA GHL]
+
+        let assignedCoach = coaches[0]; // Default fallback for UI
         let alreadyRegistered = false;
         const requestedCoachEmail = data.coachEmail;
         const leadEmail = data.leadDetails?.email;
         const leadPhone = data.leadDetails?.telefono;
 
-        // --- CHECK DEDUPLICACIÓN ---
-        const existingCoachEmail = checkExistingAssignment(leadEmail, leadPhone);
-        
-        if (existingCoachEmail) {
-            const matchedExiting = coaches.find((c: any) => c.email?.toLowerCase() === existingCoachEmail.toLowerCase());
-            if (matchedExiting) {
-                assignedCoach = matchedExiting;
-                alreadyRegistered = true;
-                console.log(`[DEDUPLICACIÓN] Lead ya registrado con coach: ${assignedCoach.email}`);
-            }
-        }
+        if (ENABLE_ROUND_ROBIN) {
+            // --- CHECK DEDUPLICACIÓN ---
+            const existingCoachEmail = checkExistingAssignment(leadEmail, leadPhone);
 
-        if (!alreadyRegistered) {
-            if (requestedCoachEmail) {
-                // Coach preseleccionado: NO consumir el puntero
-                const matchedCoach = coaches.find((c: any) => c.email?.toLowerCase() === requestedCoachEmail.toLowerCase());
-                if (matchedCoach) {
-                    assignedCoach = matchedCoach;
-                    console.log(`[ROUND-ROBIN] Coach preseleccionado: ${assignedCoach.email}`);
+            if (existingCoachEmail) {
+                const matchedExiting = coaches.find((c: any) => c.email?.toLowerCase() === existingCoachEmail.toLowerCase());
+                if (matchedExiting) {
+                    assignedCoach = matchedExiting;
+                    alreadyRegistered = true;
+                }
+            }
+
+            if (!alreadyRegistered) {
+                if (requestedCoachEmail) {
+                    // Coach preseleccionado: NO consumir el puntero
+                    const matchedCoach = coaches.find((c: any) => c.email?.toLowerCase() === requestedCoachEmail.toLowerCase());
+                    if (matchedCoach) {
+                        assignedCoach = matchedCoach;
+                    } else {
+                        // Coach solicitado no existe → fallback a Round-Robin (sí consume el puntero)
+                        console.warn(`[ROUND-ROBIN] Coach ${requestedCoachEmail} no encontrado, usando Round-Robin`);
+                        const pointer = getAndIncrementPointer(coaches.length);
+                        assignedCoach = coaches[pointer];
+                    }
                 } else {
-                    // Coach solicitado no existe → fallback a Round-Robin (sí consume el puntero)
-                    console.warn(`[ROUND-ROBIN] Coach ${requestedCoachEmail} no encontrado, usando Round-Robin`);
+                    // Sin coach específico → Round-Robin puro
                     const pointer = getAndIncrementPointer(coaches.length);
                     assignedCoach = coaches[pointer];
                 }
-            } else {
-                // Sin coach específico → Round-Robin puro
-                const pointer = getAndIncrementPointer(coaches.length);
-                assignedCoach = coaches[pointer];
-                console.log(`[ROUND-ROBIN] Usando índice ${pointer} → ${assignedCoach.email}`);
+
+                // Registrar nueva asignación para futuras peticiones (Deduplicación)
+                saveAssignment(leadEmail, leadPhone, assignedCoach.email);
             }
-            
-            // Registrar nueva asignación para futuras peticiones (Deduplicación)
-            saveAssignment(leadEmail, leadPhone, assignedCoach.email);
         }
 
-
         let debugLogs = [];
-        debugLogs.push(`[CLINT] Creating Contact for ${data.leadDetails.email}`);
+        debugLogs.push(`[GHL] Creating Lead for ${data.leadDetails.email}`);
 
         const fullName = data.leadDetails.nombre || 'Sin Nombre';
 
@@ -189,17 +119,20 @@ export const POST: APIRoute = async ({ request }) => {
 
             // 2. Map form payload specifically to the webhook requested by the user
             const webhookPayload: any = {
-                "name": firstName,
+                "nombre": firstName,
+                "first-name": firstName,
                 "last-name": lastName,
                 "email": data.leadDetails.email,
-                "phone": `${ddi}${phoneNum}`,
+                "telefono": `${ddi}${phoneNum}`,
                 "ocupacion": "none",
-                "ingreso": data.leadDetails.ingresos || "",
+                "fecha": new Date().toISOString(),
+                "ingresos": data.leadDetails.ingresos || "",
                 "ahorro": data.leadDetails.flujo_caja || "",
-                "ahorrado": data.leadDetails.capital_disponible || "",
+                "capital_liquido": data.leadDetails.capital_disponible || "",
                 "patrimonio": data.leadDetails.declara_renta || "",
                 "objetivo": data.leadDetails.objetivo || "",
-                "coach": assignedCoach.email,
+                "coach": ENABLE_ROUND_ROBIN ? assignedCoach.email : "", // [VACÍO] - Se asignará en GHL vía automatización
+                "lead_id": data.leadDetails.lead_id || "",
                 // [FASE 1] Campos de enriquecimiento enviados por el frontend
                 "agencia": data.leadDetails.agencia || "Asygnuz",
                 "fuente": data.leadDetails.fuente || "Organico",
@@ -215,53 +148,56 @@ export const POST: APIRoute = async ({ request }) => {
                 });
             }
 
-            debugLogs.push(`[CLINT] Sending Webhook Payload: ${JSON.stringify(webhookPayload)}`);
+            debugLogs.push(`[GHL] Sending Webhook Payload: ${JSON.stringify(webhookPayload)}`);
 
-            // 3. Send via Webhook
-            const webhookUrl = assignedCoach.configWebhook || 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43';
-            const webhookRes = await fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(webhookPayload)
-            });
+            // 3. Send via Webhooks in parallel (GHL and n8n)
+            const ghlWebhookUrl = import.meta.env.GHL_WEBHOOK_URL || process.env.GHL_WEBHOOK_URL || 'https://services.leadconnectorhq.com/hooks/vEh7JAwgMFnBubxjOxId/webhook-trigger/8b06b917-b26c-4535-bd62-0886f99b0e3e';
+            const n8nWebhookUrl = import.meta.env.N8N_WEBHOOK_URL || process.env.N8N_WEBHOOK_URL || 'https://services.leadconnectorhq.com/hooks/vEh7JAwgMFnBubxjOxId/webhook-trigger/8b06b917-b26c-4535-bd62-0886f99b0e3e';
 
+            const [webhookRes, n8nWebhookRes] = await Promise.all([
+                fetch(ghlWebhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(webhookPayload)
+                }),
+                fetch(n8nWebhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(webhookPayload)
+                })
+            ]);
+
+            console.log("n8nWebhookRes", n8nWebhookRes);
             if (!webhookRes.ok) {
-                debugLogs.push(`[CLINT] Failed Webhook. Status: ${webhookRes.status}. Text: ${await webhookRes.text()}`);
+                debugLogs.push(`[GHL] Failed Webhook. Status: ${webhookRes.status}. Text: ${await webhookRes.text()}`);
+
+
             } else {
-                debugLogs.push(`[CLINT] Success Webhook: ${await webhookRes.text()}`);
+                debugLogs.push(`[GHL] Success Webhook: ${await webhookRes.text()}`);
             }
         } catch (crmError: any) {
-            debugLogs.push(`[CLINT] Unhandled CRM error: ${crmError.message}`);
+            debugLogs.push(`[GHL] Unhandled CRM error: ${crmError.message}`);
         }
-
-        console.log('[CLINT DEBUG]', debugLogs.join(' | '));
-
-        // [FASE 4] Bloque de Google Calendar eliminado — ahora se usa Calendly
-        // const eventData = await createGoogleMeetEvent(...);
-
-        console.log(`[ROUND-ROBIN] Assigned Lead to: ${assignedCoach.email}. Persistent index saved.`);
 
         // [FASE 4] Resolver configuración local del coach (para obtener calendlyUrl)
         const coachConfig = COACH_CONFIG.find(c => c.email === assignedCoach.email);
 
-        // [FASE 5] Enviar email de respaldo al lead (fire-and-forget, no bloquea la respuesta)
-        const firstName = fullName.split(' ')[0] || fullName;
-        const coachDisplayName = `${assignedCoach?.first_name || ''} ${assignedCoach?.last_name || ''}`.trim() || 'tu Money Strategist';
-        sendBackupEmail(
-            data.leadDetails.email,
-            firstName,
-            coachConfig?.calendlyUrl || 'https://calendly.com/default-financiera',
-            coachDisplayName
-        ).catch((err: any) => console.error('[EMAIL] Error en sendBackupEmail:', err.message));
+        if (ENABLE_BACKUP_EMAIL) {
+            const firstName = fullName.split(' ')[0] || fullName;
+            const coachDisplayName = `${assignedCoach.first_name || ''} ${assignedCoach.last_name || ''}`.trim() || 'tu Money Strategist';
+            sendBackupEmail(
+                data.leadDetails.email,
+                firstName,
+                coachConfig?.calendlyUrl || 'https://calendly.com/default-financiera',
+                coachDisplayName
+            ).catch((err: any) => console.error('[EMAIL] Error en sendBackupEmail:', err.message));
+        }
 
         return new Response(JSON.stringify({
             success: true,
             alreadyRegistered,
-            coach: assignedCoach.email,
-            coachName: coachDisplayName,
+            coach: "unassigned",
+            coachName: "Money Strategist",
             calendlyUrl: coachConfig?.calendlyUrl || 'https://calendly.com/default-financiera'
         }), {
             status: 200,
@@ -347,6 +283,5 @@ async function sendBackupEmail(
         throw new Error(`SendGrid ${res.status}: ${errText}`);
     }
 
-    console.log(`[EMAIL] Backup email enviado a ${leadEmail} (coach: ${coachName})`);
 }
 // ────────────────────────────────────────────────────────────────────────────
