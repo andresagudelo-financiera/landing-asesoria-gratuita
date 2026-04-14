@@ -199,6 +199,7 @@ export default function LeadFunnelContainer() {
                 agencia,
                 fuente,
                 calificacion_lead: nivel_calificacion,
+                lead_id: leadId,
             });
         }
 
@@ -232,6 +233,7 @@ export default function LeadFunnelContainer() {
                             agencia: ag,
                             fuente: fu,
                             nivel_calificacion: nc,
+                            lead_id: leadId,
                         },
                     }),
                 });
@@ -330,6 +332,7 @@ export default function LeadFunnelContainer() {
                 agencia,
                 fuente,
                 calificacion_lead: nivel_calificacion,
+                lead_id: leadId,
             });
         }
 
@@ -349,6 +352,7 @@ export default function LeadFunnelContainer() {
                         agencia,
                         fuente,
                         nivel_calificacion,
+                        lead_id: leadId,
                     },
                 }),
             });
@@ -382,6 +386,7 @@ export default function LeadFunnelContainer() {
                         agencia,
                         fuente,
                         nivel_calificacion,
+                        lead_id: leadId,
                     }
                 })
             });
