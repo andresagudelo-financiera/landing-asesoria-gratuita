@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { funnelConfig } from './formConfig';
 import type { Question } from './formConfig';
+import { generateLeadId } from '../../utils/generateLeadId';
 
 interface DynamicFormProps {
     onNext: (data: Record<string, string>) => void;
@@ -11,6 +12,17 @@ interface DynamicFormProps {
 }
 
 export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }: DynamicFormProps) {
+    // [TRACEABILITY] ID único por sesión de formulario — persiste entre re-renders sin disparar actualizaciones
+    const leadIdRef = useRef<string>(generateLeadId());
+    const leadId = leadIdRef.current;
+
+    // [TRACEABILITY] Etiquetar la grabación de Microsoft Clarity con el lead_id
+    useEffect(() => {
+        if (typeof window !== 'undefined' && typeof (window as any).clarity === 'function') {
+            (window as any).clarity("set", "lead_id", leadId);
+        }
+    }, [leadId]);
+
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [error, setError] = useState('');
@@ -66,11 +78,24 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
         setTimeout(() => {
             // Avanzar al siguiente paso
             if (currentStepIndex < funnelConfig.questions.length - 1) {
-                setCurrentStepIndex(currentStepIndex + 1);
+                const nextIndex = currentStepIndex + 1;
+                setCurrentStepIndex(nextIndex);
                 setIsTransitioning(false);
+
+                // GA4: Funnel step tracking
+                if (typeof window !== 'undefined' && 'gtag' in window) {
+                    const nextQuestion = funnelConfig.questions[nextIndex];
+                    (window as any).gtag('event', 'funnel_step_view', {
+                        lead_id: leadId,
+                        step_index: nextIndex,
+                        step_id: nextQuestion?.id || 'unknown',
+                        step_total: funnelConfig.questions.length,
+                        step_label: nextQuestion?.question?.substring(0, 50) || '',
+                    });
+                }
             } else {
-                // Formulario terminado, la calificación se calcula en el contenedor
-                onNext(answers);
+                // Formulario terminado — inyectar lead_id antes de pasar al contenedor
+                onNext({ ...answers, lead_id: leadId });
             }
         }, 300);
     };
@@ -79,9 +104,21 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
         if (currentStepIndex > 0) {
             setIsTransitioning(true);
             setTimeout(() => {
-                setCurrentStepIndex(currentStepIndex - 1);
+                const prevIndex = currentStepIndex - 1;
+                setCurrentStepIndex(prevIndex);
                 setIsTransitioning(false);
                 setError('');
+
+                // GA4: Funnel step back tracking
+                if (typeof window !== 'undefined' && 'gtag' in window) {
+                    const prevQuestion = funnelConfig.questions[prevIndex];
+                    (window as any).gtag('event', 'funnel_step_back', {
+                        lead_id: leadId,
+                        step_index: prevIndex,
+                        step_id: prevQuestion?.id || 'unknown',
+                        from_step_id: funnelConfig.questions[currentStepIndex]?.id || 'unknown',
+                    });
+                }
             }, 300);
         }
     };

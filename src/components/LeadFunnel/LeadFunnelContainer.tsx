@@ -121,6 +121,8 @@ export default function LeadFunnelContainer() {
     });
     const [formProgress, setFormProgress] = useState(0);
     const [isProcessing, setIsProcessing] = useState(false);
+    // [TRACEABILITY] ID de trazabilidad generado por DynamicForm
+    const [leadId, setLeadId] = useState<string>('');
 
     useEffect(() => {
         const handleOpen = () => {
@@ -129,7 +131,8 @@ export default function LeadFunnelContainer() {
             // Evento GA4: Inicio de embudo
             if (typeof window !== 'undefined' && 'gtag' in window) {
                 (window as any).gtag('event', 'lead_form_start', {
-                    source: 'cta_button'
+                    source: 'cta_button',
+                    lead_id: leadId || undefined,
                 });
             }
 
@@ -167,6 +170,10 @@ export default function LeadFunnelContainer() {
         setIsProcessing(true);
         setLeadData(data);
 
+        // [TRACEABILITY] Extraer y persistir el lead_id generado por DynamicForm
+        const currentLeadId = data.lead_id || '';
+        setLeadId(currentLeadId);
+
         // [FASE 1] Calcular atribución y calificación con los datos recién obtenidos
         const utms = getSavedUTMs();
         const { agencia, fuente } = calcularAtribucion(utms);
@@ -183,6 +190,7 @@ export default function LeadFunnelContainer() {
         // Evento GA4: Perfilamiento Completo (Lead) — enriquecido con atribución y calificación
         if (typeof window !== 'undefined' && 'gtag' in window) {
             (window as any).gtag('event', 'generate_lead', {
+                lead_id: currentLeadId,
                 lead_type: data.perfil || 'standard',
                 income_range: data.ingresos || 'unknown',
                 // [FASE 1] Propiedades de enriquecimiento
@@ -219,6 +227,7 @@ export default function LeadFunnelContainer() {
                         leadDetails: {
                             ...data,
                             ...utmsFetch,
+                            lead_id: currentLeadId,
                             agencia: ag,
                             fuente: fu,
                             nivel_calificacion: nc,
@@ -272,6 +281,7 @@ export default function LeadFunnelContainer() {
                     leadDetails: {
                         ...data,
                         ...utms,
+                        lead_id: leadId || data.lead_id || '',
                         agencia: enrichment.agencia,
                         fuente: enrichment.fuente,
                         nivel_calificacion: enrichment.nivel_calificacion,
@@ -298,7 +308,7 @@ export default function LeadFunnelContainer() {
         setStage(3);
     };
 
-    // [FASE 1] async: los leads descalificados también se envían a Clint CRM (fire-and-forget, no bloquea la UI)
+    // [FASE 1] async: los leads descalificados también se envían a GHL+n8n (fire-and-forget, no bloquea la UI)
     const handleFormDisqualified = async (data: Record<string, string>) => {
         setIsProcessing(true);
         setLeadData(data);
@@ -313,6 +323,7 @@ export default function LeadFunnelContainer() {
         // Evento GA4: Perfilamiento Completo (Disqualified) — enriquecido
         if (typeof window !== 'undefined' && 'gtag' in window) {
             (window as any).gtag('event', 'generate_lead', {
+                lead_id: data.lead_id || '',
                 lead_type: 'disqualified',
                 income_range: data.ingresos || 'unknown',
                 // [FASE 1] Propiedades de enriquecimiento
@@ -324,7 +335,7 @@ export default function LeadFunnelContainer() {
 
         // [FASE 1] Meta Pixel: NO se dispara para leads descalificados (nivel siempre Baja en este path)
 
-        // [FASE 1] Enviar lead descalificado a Clint CRM vía schedule.ts (skipCalendar=true)
+        // [FASE 1] Enviar lead descalificado a GHL vía schedule.ts (skipCalendar=true)
         // Fire-and-forget: no bloqueamos la UI ni lanzamos errores al usuario
         try {
             await fetch('/api/calendar/schedule', {
@@ -335,6 +346,7 @@ export default function LeadFunnelContainer() {
                     leadDetails: {
                         ...data,
                         ...utms,
+                        lead_id: data.lead_id || '',
                         agencia,
                         fuente,
                         nivel_calificacion,
@@ -343,7 +355,7 @@ export default function LeadFunnelContainer() {
             });
         } catch (err) {
             // No propagamos el error: la UX (stage 4) ya está satisfecha
-            console.error('[CRM] Error enviando lead descalificado a Clint:', err);
+            console.error('[CRM] Error enviando lead descalificado a GHL:', err);
         } finally {
             setIsProcessing(false);
         }
@@ -368,6 +380,7 @@ export default function LeadFunnelContainer() {
                     leadDetails: {
                         ...leadData,
                         ...utms,
+                        lead_id: leadId,
                         agencia,
                         fuente,
                         nivel_calificacion,
@@ -396,6 +409,7 @@ export default function LeadFunnelContainer() {
         // Evento GA4: Agendamiento Completo (Schedule) — enriquecido con atribución
         if (typeof window !== 'undefined' && 'gtag' in window) {
             (window as any).gtag('event', 'schedule', {
+                lead_id: leadId,
                 appointment_date: date,
                 appointment_time: time,
                 coach: assignedCoach,

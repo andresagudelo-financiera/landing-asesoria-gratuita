@@ -3,9 +3,6 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 
-const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4eVYOXuSv4BRdBTeDEgswf2I7Ym6tw==';
-const CLINT_BASE_URL = 'https://api.clint.digital/v1';
-
 import { COACH_CONFIG } from '../../../utils/coachConfig';
 
 // Import Google Calendar Logic
@@ -14,26 +11,14 @@ import { getAssigneePointer } from '../../../utils/assigneePointer';
 
 export const GET: APIRoute = async ({ request }) => {
     try {
-        // 1. Fetch Coaches from Clint API
-        const clintRes = await fetch(`${CLINT_BASE_URL}/users`, {
-            method: 'GET',
-            headers: {
-                'api-token': CLINT_API_KEY,
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!clintRes.ok) {
-            throw new Error(`Clint API Error: ${clintRes.statusText}`);
-        }
-
-        const clintUsers = await clintRes.json();
-        const usersArray = clintUsers.data || clintUsers;
-
-        // 2. Filter ONLY Andrea Estrada for testing
-        const coaches = usersArray.filter((user: any) =>
-            user.email && user.email.toLowerCase() === 'andrea.estrada@financieramentecu.com'
-        );
+        // 1. Filter ONLY Andrea Estrada for testing (desde config local)
+        const coaches = COACH_CONFIG
+            .filter(config => config.email === 'andrea.estrada@financieramentecu.com')
+            .map(config => ({
+                email: config.email,
+                first_name: config.email.split('@')[0].split('.')[0],
+                last_name: config.email.split('@')[0].split('.').slice(1).join(' '),
+            }));
 
         // 3. Calendar Availability Logic
         const availableSlots: Record<string, { time: string, coach: string }[]> = {};

@@ -3,8 +3,11 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
-const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4eVYOXuSv4BRdBTeDEgswf2I7Ym6tw==';
-const CLINT_BASE_URL = 'https://api.clint.digital/v1';
+// [GHL] GoHighLevel Inbound Webhook URL (desde .env)
+const GHL_WEBHOOK_URL = import.meta.env.GHL_WEBHOOK_URL || process.env.GHL_WEBHOOK_URL;
+
+// [N8N] Webhook de respaldo redundante (desde .env)
+const N8N_WEBHOOK_URL = import.meta.env.N8N_WEBHOOK_URL || process.env.N8N_WEBHOOK_URL;
 
 import { COACH_CONFIG } from '../../../utils/coachConfig';
 import { getAndIncrementPointer, checkExistingAssignment, saveAssignment } from '../../../utils/assigneePointer';
@@ -34,8 +37,8 @@ export const POST: APIRoute = async ({ request }) => {
         if (data.leadDetails?.nivel_calificacion === "Baja") {
             try {
                 const rawPhoneBaja = (data.leadDetails.telefono || '').replace(/[^\d]/g, '');
-                let ddiBaja  = "+57";
-                let numBaja  = rawPhoneBaja;
+                let ddiBaja = "+57";
+                let numBaja = rawPhoneBaja;
                 if (rawPhoneBaja.startsWith('57') && rawPhoneBaja.length > 10) {
                     numBaja = rawPhoneBaja.substring(2);
                 } else if (rawPhoneBaja.length > 10 && !rawPhoneBaja.startsWith('3')) {
@@ -46,40 +49,37 @@ export const POST: APIRoute = async ({ request }) => {
                 const fullNameBaja = data.leadDetails.nombre || 'Sin Nombre';
                 const namePartsBaja = fullNameBaja.split(' ');
 
-                const webhookPayload: Record<string, string> = {
-                    "name":               namePartsBaja[0] || '',
-                    "last-name":          namePartsBaja.slice(1).join(' ') || '',
-                    "email":              data.leadDetails.email        || '',
-                    "phone":              `${ddiBaja}${numBaja}`,
-                    "ocupacion":          "none",
-                    "ingreso":            data.leadDetails.ingresos     || '',
-                    "ahorro":             data.leadDetails.flujo_caja    || '', // Lo que queda al mes
-                    "ahorrado":           data.leadDetails.capital_disponible || '', // Capital ahorrado
-                    "patrimonio":         data.leadDetails.declara_renta || '', // Estado declaración / patrimonio
-                    "objetivo":           data.leadDetails.objetivo     || '',
-                    "coach":              "Sin asignar",
-                    "agencia":            data.leadDetails.agencia           || "Asygnuz",
-                    "fuente":             data.leadDetails.fuente            || "Organico",
-                    "nivel_calificacion": data.leadDetails.nivel_calificacion,
+                const webhookPayload: Record<string, any> = {
+                    "first_name": namePartsBaja[0] || '',
+                    "last_name": namePartsBaja.slice(1).join(' ') || '',
+                    "email": data.leadDetails.email || '',
+                    "phone": `${ddiBaja}${numBaja}`,
+                    "source": data.leadDetails.fuente || "ADS",
+                    "customData": {
+                        "lead_id": data.leadDetails.lead_id || '',
+                        "ingresos": data.leadDetails.ingresos || '',
+                        "objetivo": data.leadDetails.objetivo || '',
+                        "capital_liquido": data.leadDetails.capital_disponible || '',
+                        "nivel_calificacion": data.leadDetails.nivel_calificacion,
+                        "agencia": data.leadDetails.agencia || "Sin atribuir",
+                        "utm_campaign": data.leadDetails.utm_campaign || '',
+                        "utm_source": data.leadDetails.utm_source || '',
+                        "utm_medium": data.leadDetails.utm_medium || '',
+                    },
                 };
 
-                // Append UTM parameters dynamically
-                Object.keys(data.leadDetails).forEach(key => {
-                    if (key.startsWith('utm_')) webhookPayload[key] = data.leadDetails[key];
-                });
-
-                console.log("[CONGELADOR] Lead Baja interceptado. Enviando a nutrición:", webhookPayload);
+                console.log("[CONGELADOR] Lead Baja interceptado. Enviando a GHL nutrición:", webhookPayload);
 
                 await fetch(
-                    'https://functions-api.clint.digital/endpoints/integration/webhook/f2ee93c4-59f5-45d1-8802-b9619058f259',
+                    GHL_WEBHOOK_URL,
                     {
-                        method:  'POST',
+                        method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                        body:    JSON.stringify(webhookPayload),
+                        body: JSON.stringify(webhookPayload),
                     }
                 );
             } catch (bajaError: any) {
-                console.error("[CONGELADOR] Error al enviar lead Baja a nutrición:", bajaError.message);
+                console.error("[CONGELADOR][GHL] Error al enviar lead Baja a nutrición:", bajaError.message);
             }
 
             return new Response(
@@ -89,32 +89,18 @@ export const POST: APIRoute = async ({ request }) => {
         }
         // ─────────────────────────────────────────────────────────────────────────
 
-        // 1. Obtener lista de coaches desde Clint en tiempo real
-        const clintRes = await fetch(`${CLINT_BASE_URL}/users`, {
-            method: 'GET',
-            headers: {
-                'api-token': CLINT_API_KEY,
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!clintRes.ok) throw new Error('Failed to load coaches');
-        const clintUsers = await clintRes.json();
-        const usersArray = clintUsers.data || clintUsers;
-
-        // 2. Filter only valid & active coaches WITH calendlyUrl, forcing the order of COACH_CONFIG, merging with Clint User IDs
+        // 1. Obtener lista de coaches activos desde la configuración local
         const coaches = COACH_CONFIG
-            .filter(config => config.active !== false && config.calendlyUrl)
-            .map(config => {
-                const clintUser = usersArray.find((user: any) => user.email?.toLowerCase() === config.email);
-                if (clintUser) {
-                    return { ...clintUser, configLeader: config.leader, configWebhook: config.webhook };
-                }
-                return null;
-            })
-            .filter(Boolean);
+            .filter(config => config.active !== false)
+            .map(config => ({
+                email: config.email,
+                first_name: config.email.split('@')[0].split('.')[0],
+                last_name: config.email.split('@')[0].split('.').slice(1).join(' '),
+                configLeader: config.leader,
+                calendlyUrl: config.calendlyUrl,
+            }));
 
-        if (coaches.length === 0) throw new Error('No valid coaches available in Clint');
+        if (coaches.length === 0) throw new Error('No valid coaches available');
 
         // 2. Lógica de Asignación (Deduplicación -> Coach específico -> Round-Robin)
         let assignedCoach = coaches[0]; // Default fallback
@@ -123,15 +109,13 @@ export const POST: APIRoute = async ({ request }) => {
         const leadEmail = data.leadDetails?.email;
         const leadPhone = data.leadDetails?.telefono;
 
-        // --- CHECK DEDUPLICACIÓN ---
-        const existingCoachEmail = checkExistingAssignment(leadEmail, leadPhone);
-        
-        if (existingCoachEmail) {
-            const matchedExiting = coaches.find((c: any) => c.email?.toLowerCase() === existingCoachEmail.toLowerCase());
-            if (matchedExiting) {
-                assignedCoach = matchedExiting;
-                alreadyRegistered = true;
-                console.log(`[DEDUPLICACIÓN] Lead ya registrado con coach: ${assignedCoach.email}`);
+        if (requestedCoachEmail) {
+            const matchedCoach = coaches.find(c => c.email?.toLowerCase() === requestedCoachEmail.toLowerCase());
+            if (matchedCoach) {
+                assignedCoach = matchedCoach;
+            } else {
+                console.warn(`Requested coach ${requestedCoachEmail} not found, falling back to Round-Robin`);
+                assignedCoach = coaches[pointer];
             }
         }
 
@@ -154,90 +138,121 @@ export const POST: APIRoute = async ({ request }) => {
                 assignedCoach = coaches[pointer];
                 console.log(`[ROUND-ROBIN] Usando índice ${pointer} → ${assignedCoach.email}`);
             }
-            
+
             // Registrar nueva asignación para futuras peticiones (Deduplicación)
             saveAssignment(leadEmail, leadPhone, assignedCoach.email);
         }
 
 
-        let debugLogs = [];
-        debugLogs.push(`[CLINT] Creating Contact for ${data.leadDetails.email}`);
-
         const fullName = data.leadDetails.nombre || 'Sin Nombre';
 
-        // 3. Create Contact & Deal in Clint CRM (Decoupled from Calendar)
-        try {
-            let rawPhone = data.leadDetails.telefono || '';
-            rawPhone = rawPhone.replace(/[^\d]/g, ''); // Leave only digits
+        // ─── 3. Preparar payloads para GHL y n8n ────────────────────────────────
+        let rawPhone = data.leadDetails.telefono || '';
+        rawPhone = rawPhone.replace(/[^\d]/g, ''); // Leave only digits
 
-            let ddi = "+57";
-            let phoneNum = rawPhone;
+        let ddi = "+57";
+        let phoneNum = rawPhone;
 
-            // If the user already typed 57 at the start, remove it for the phone part
-            if (rawPhone.startsWith('57') && rawPhone.length > 10) {
-                phoneNum = rawPhone.substring(2);
-            } else if (rawPhone.length > 10 && !rawPhone.startsWith('3')) {
-                // Heuristic: If they put a generic country code without +, extract first 2 digits
-                ddi = `+${rawPhone.substring(0, 2)}`;
-                phoneNum = rawPhone.substring(2);
-            }
+        if (rawPhone.startsWith('57') && rawPhone.length > 10) {
+            phoneNum = rawPhone.substring(2);
+        } else if (rawPhone.length > 10 && !rawPhone.startsWith('3')) {
+            ddi = `+${rawPhone.substring(0, 2)}`;
+            phoneNum = rawPhone.substring(2);
+        }
 
-            // 1. Separate Name and Last Name
-            const nameParts = fullName.split(' ');
-            const firstName = nameParts[0] || '';
-            const lastName = nameParts.slice(1).join(' ') || '';
+        const nameParts = fullName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        const formattedPhone = `${ddi}${phoneNum}`;
 
-            // 2. Map form payload specifically to the webhook requested by the user
-            const webhookPayload: any = {
-                "name": firstName,
-                "last-name": lastName,
-                "email": data.leadDetails.email,
-                "phone": `${ddi}${phoneNum}`,
-                "ocupacion": "none",
-                "ingreso": data.leadDetails.ingresos || "",
-                "ahorro": data.leadDetails.flujo_caja || "",
-                "ahorrado": data.leadDetails.capital_disponible || "",
-                "patrimonio": data.leadDetails.declara_renta || "",
+        // Payload GHL: estructura anidada con customData
+        const ghlPayload: any = {
+            "first_name": firstName,
+            "last_name": lastName,
+            "email": data.leadDetails.email,
+            "phone": formattedPhone,
+            "source": data.leadDetails.fuente || "ADS",
+            "customData": {
+                "lead_id": data.leadDetails.lead_id || '',
+                "ingresos": data.leadDetails.ingresos || "",
                 "objetivo": data.leadDetails.objetivo || "",
-                "coach": assignedCoach.email,
-                // [FASE 1] Campos de enriquecimiento enviados por el frontend
-                "agencia": data.leadDetails.agencia || "Asygnuz",
-                "fuente": data.leadDetails.fuente || "Organico",
+                "capital_liquido": data.leadDetails.capital_disponible || "",
                 "nivel_calificacion": data.leadDetails.nivel_calificacion || "Baja",
-            };
+                "agencia": data.leadDetails.agencia || "Sin atribuir",
+                "assigned_coach_email": assignedCoach.email,
+                "utm_campaign": data.leadDetails.utm_campaign || "",
+                "utm_source": data.leadDetails.utm_source || "",
+                "utm_medium": data.leadDetails.utm_medium || "",
+            },
+        };
 
-            // Append UTM parameters dynamically
-            if (data.leadDetails) {
-                Object.keys(data.leadDetails).forEach(key => {
-                    if (key.startsWith('utm_')) {
-                        webhookPayload[key] = data.leadDetails[key];
-                    }
-                });
-            }
+        // Payload n8n: campos planos sin anidación
+        const n8nPayload: any = {
+            lead_id: data.leadDetails.lead_id || '',
+            fecha: new Date().toISOString(),
+            nombre: fullName,
+            first_name: firstName,
+            last_name: lastName,
+            email: data.leadDetails.email || "",
+            telefono: formattedPhone,
+            ingresos: data.leadDetails.ingresos || "",
+            objetivo: data.leadDetails.objetivo || "",
+            capital_liquido: data.leadDetails.capital_disponible || "",
+            nivel_calificacion: data.leadDetails.nivel_calificacion || "Baja",
+            fuente: data.leadDetails.fuente || "ADS",
+            agencia: data.leadDetails.agencia || "Sin atribuir",
+            assigned_coach_email: assignedCoach.email,
+            utm_campaign: data.leadDetails.utm_campaign || "",
+            utm_source: data.leadDetails.utm_source || "",
+            utm_medium: data.leadDetails.utm_medium || "",
+        };
 
-            debugLogs.push(`[CLINT] Sending Webhook Payload: ${JSON.stringify(webhookPayload)}`);
+        // ─── 4. Envío paralelo e independiente: GHL + n8n ───────────────────────
+        console.log(`[GHL] Enviando lead ${data.leadDetails.email} a GoHighLevel...`);
+        console.log(`[N8N] Enviando lead ${data.leadDetails.email} a n8n...`);
 
-            // 3. Send via Webhook
-            const webhookUrl = assignedCoach.configWebhook || 'https://functions-api.clint.digital/endpoints/integration/webhook/30b26225-a3a8-47e9-80bb-f07a8ce2db43';
-            const webhookRes = await fetch(webhookUrl, {
+        const [ghlResult, n8nResult] = await Promise.allSettled([
+            // GHL Inbound Webhook
+            fetch(GHL_WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify(webhookPayload)
-            });
+                body: JSON.stringify(ghlPayload),
+            }),
+            // n8n Webhook de respaldo
+            fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(n8nPayload),
+            }),
+        ]);
 
-            if (!webhookRes.ok) {
-                debugLogs.push(`[CLINT] Failed Webhook. Status: ${webhookRes.status}. Text: ${await webhookRes.text()}`);
+        // ─── 5. Logs independientes por destino ─────────────────────────────────
+        // GHL
+        if (ghlResult.status === 'fulfilled') {
+            const ghlRes = ghlResult.value;
+            if (ghlRes.ok) {
+                console.log(`[GHL] ✅ Webhook exitoso (${ghlRes.status}): ${await ghlRes.text()}`);
             } else {
-                debugLogs.push(`[CLINT] Success Webhook: ${await webhookRes.text()}`);
+                console.error(`[GHL] ❌ Webhook falló (${ghlRes.status}): ${await ghlRes.text()}`);
             }
-        } catch (crmError: any) {
-            debugLogs.push(`[CLINT] Unhandled CRM error: ${crmError.message}`);
+        } else {
+            console.error(`[GHL] ❌ Error de red/fetch: ${ghlResult.reason}`);
         }
 
-        console.log('[CLINT DEBUG]', debugLogs.join(' | '));
+        // n8n
+        if (n8nResult.status === 'fulfilled') {
+            const n8nRes = n8nResult.value;
+            if (n8nRes.ok) {
+                console.log(`[N8N] ✅ Webhook exitoso (${n8nRes.status}): ${await n8nRes.text()}`);
+            } else {
+                console.error(`[N8N] ❌ Webhook falló (${n8nRes.status}): ${await n8nRes.text()}`);
+            }
+        } else {
+            console.error(`[N8N] ❌ Error de red/fetch: ${n8nResult.reason}`);
+        }
 
         // [FASE 4] Bloque de Google Calendar eliminado — ahora se usa Calendly
         // const eventData = await createGoogleMeetEvent(...);
@@ -247,9 +262,11 @@ export const POST: APIRoute = async ({ request }) => {
         // [FASE 4] Resolver configuración local del coach (para obtener calendlyUrl)
         const coachConfig = COACH_CONFIG.find(c => c.email === assignedCoach.email);
 
+
         // [FASE 5] Enviar email de respaldo al lead (fire-and-forget, no bloquea la respuesta)
-        const firstName = fullName.split(' ')[0] || fullName;
-        const coachDisplayName = `${assignedCoach?.first_name || ''} ${assignedCoach?.last_name || ''}`.trim() || 'tu Money Strategist';
+        const coachFirstName = assignedCoach.first_name || assignedCoach.email.split('@')[0].split('.')[0] || '';
+        const coachLastName = assignedCoach.last_name || assignedCoach.email.split('@')[0].split('.').slice(1).join(' ') || '';
+        const coachDisplayName = `${coachFirstName} ${coachLastName}`.trim() || 'tu Money Strategist';
         sendBackupEmail(
             data.leadDetails.email,
             firstName,

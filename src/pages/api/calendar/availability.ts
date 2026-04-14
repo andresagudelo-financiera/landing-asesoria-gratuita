@@ -3,10 +3,6 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 
-const CLINT_API_KEY = 'U2FsdGVkX1+dyDsqKNRQ2D4DpjOtA9OXhlwMY6YjbD2LeXJD/eZ0+pDh4eVYOXuSv4BRdBTeDEgswf2I7Ym6tw==';
-const CLINT_BASE_URL = 'https://api.clint.digital/v1';
-
-// Lista curada de los emails de los Coaches válidos según lo conversado (13)
 import { COACH_CONFIG } from '../../../utils/coachConfig';
 
 // Import Google Calendar Logic
@@ -16,34 +12,15 @@ import { isColombiaHoliday } from '../../../utils/colombiaHolidays';
 
 export const GET: APIRoute = async ({ request }) => {
     try {
-        // 1. Fetch Coaches from Clint API
-        const clintRes = await fetch(`${CLINT_BASE_URL}/users`, {
-            method: 'GET',
-            headers: {
-                'api-token': CLINT_API_KEY,
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!clintRes.ok) {
-            throw new Error(`Clint API Error: ${clintRes.statusText}`);
-        }
-
-        const clintUsers = await clintRes.json();
-
-        const usersArray = clintUsers.data || clintUsers; // Manejar si viene en .data o directo
-
-        // 2. Filter only valid & active coaches WITH calendlyUrl, preserving COACH_CONFIG order (interleaved)
+        // 1. Obtener lista de coaches activos desde la configuración local
         const coaches = COACH_CONFIG
-            .filter(config => config.active !== false && config.calendlyUrl)
-            .map(config => {
-                const clintUser = usersArray.find((user: any) => user.email?.toLowerCase() === config.email.toLowerCase());
-                if (clintUser) {
-                    return { ...clintUser, configLeader: config.leader };
-                }
-                return null;
-            })
-            .filter(Boolean);
+            .filter(config => config.active !== false)
+            .map(config => ({
+                email: config.email,
+                first_name: config.email.split('@')[0].split('.')[0],
+                last_name: config.email.split('@')[0].split('.').slice(1).join(' '),
+                configLeader: config.leader,
+            }));
 
         // 3. Calendar Availability Logic
         const availableSlots: Record<string, { time: string, coach: string }[]> = {};
