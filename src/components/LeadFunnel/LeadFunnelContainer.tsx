@@ -495,7 +495,7 @@ export default function LeadFunnelContainer() {
                             </div>
                             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">¡Gracias por tu interés!</h2>
                             <p className="text-white/70 text-lg mb-8 max-w-md">
-                                Hemos recibido tus respuestas. Por el momento, la mejor forma de ayudarte es a través de nuestros recursos gratuitos donde encontrarás herramientas valiosas para seguir construyendo tus bases financieras.
+                                Hemos recibido tus respuestas, pronto uno de nuestros Money Strategists se comunicará contigo.
                             </p>
                             <button
                                 onClick={() => {
