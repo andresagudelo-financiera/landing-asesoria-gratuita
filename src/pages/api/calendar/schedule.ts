@@ -55,18 +55,18 @@ export const POST: APIRoute = async ({ request }) => {
         const leadEmail = data.leadDetails?.email;
         const leadPhone = data.leadDetails?.telefono;
 
-        if (ENABLE_ROUND_ROBIN) {
-            // --- CHECK DEDUPLICACIÓN ---
-            const existingCoachEmail = checkExistingAssignment(leadEmail, leadPhone);
+        // --- CHECK DEDUPLICACIÓN (Siempre activo para trazabilidad y validación de emails) ---
+        const existingCoachEmail = checkExistingAssignment(leadEmail, leadPhone);
 
-            if (existingCoachEmail) {
-                const matchedExiting = coaches.find((c: any) => c.email?.toLowerCase() === existingCoachEmail.toLowerCase());
-                if (matchedExiting) {
-                    assignedCoach = matchedExiting;
-                    alreadyRegistered = true;
-                }
+        if (existingCoachEmail) {
+            const matchedExiting = coaches.find((c: any) => c.email?.toLowerCase() === existingCoachEmail.toLowerCase());
+            if (matchedExiting) {
+                assignedCoach = matchedExiting;
+                alreadyRegistered = true;
             }
+        }
 
+        if (ENABLE_ROUND_ROBIN) {
             if (!alreadyRegistered) {
                 if (requestedCoachEmail) {
                     // Coach preseleccionado: NO consumir el puntero
@@ -84,10 +84,12 @@ export const POST: APIRoute = async ({ request }) => {
                     const pointer = getAndIncrementPointer(coaches.length);
                     assignedCoach = coaches[pointer];
                 }
-
-                // Registrar nueva asignación para futuras peticiones (Deduplicación)
-                saveAssignment(leadEmail, leadPhone, assignedCoach.email);
             }
+        }
+
+        // Siempre guardar/actualizar la asignación si es un lead nuevo
+        if (!alreadyRegistered) {
+            saveAssignment(leadEmail, leadPhone, assignedCoach.email);
         }
 
         let debugLogs = [];

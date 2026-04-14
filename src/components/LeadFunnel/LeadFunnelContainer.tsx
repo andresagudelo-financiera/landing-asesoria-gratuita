@@ -490,15 +490,15 @@ export default function LeadFunnelContainer() {
                             onProgressUpdate={setFormProgress}
                         />
                     )}
-
+                    {/* 
                     {stage === 2 && (
                         <CalendarPicker
                             onSchedule={handleSchedule}
                             onBack={() => setStage(1)}
                         />
-                    )}
+                    )} */}
 
-                    {stage === 3 && (
+                    {!isProcessing && stage === 3 && (
                         <ConfirmationView
                             onClose={() => setIsOpen(false)}
                             coachName={assignedCoach || "Tu Money Strategist(a)"}

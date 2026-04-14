@@ -15,7 +15,6 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [error, setError] = useState('');
     const [isCheckingLead, setIsCheckingLead] = useState(false);
-    const [leadWarning, setLeadWarning] = useState('');
 
     const question: Question | undefined = funnelConfig.questions[currentStepIndex];
 
@@ -61,9 +60,8 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                 });
                 const data = await res.json();
                 if (data.exists) {
-                    setLeadWarning('Ya estás registrado en nuestra base de datos. Continuaremos para actualizar tu perfil.');
-                } else {
-                    setLeadWarning('');
+                    setError('Ya hay una persona registrada con este correo electrónico.');
+                    return; // Bloquea el avance
                 }
             } catch (e) {
                 console.error('Error checking lead existence:', e);
@@ -90,9 +88,8 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                 });
                 const data = await res.json();
                 if (data.exists) {
-                    setLeadWarning('Este número ya está registrado. Continuaremos para actualizar tu perfil.');
-                } else {
-                    setLeadWarning('');
+                    setError('Este número de teléfono ya está registrado con nosotros.');
+                    return; // Bloquea el avance
                 }
             } catch (e) {
                 console.error('Error checking lead existence:', e);
@@ -201,11 +198,6 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                                     placeholder={question.placeholder}
                                     className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-white text-lg focus:outline-none focus:border-claudia-accent-green focus:bg-white/10 transition-all placeholder:text-white/30"
                                 />
-                                {leadWarning && question.type === 'email' && (
-                                    <p className="text-claudia-accent-orange text-sm font-medium mt-1 animate-in fade-in slide-in-from-top-1">
-                                        {leadWarning}
-                                    </p>
-                                )}
                             </div>
                         )}
 
@@ -303,11 +295,6 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                                     enableSearch={true}
                                     masks={{ co: '... ... ....' }}
                                 />
-                                {leadWarning && question.type === 'tel' && (
-                                    <p className="text-claudia-accent-orange text-sm font-medium mt-1 animate-in fade-in slide-in-from-top-1">
-                                        {leadWarning}
-                                    </p>
-                                )}
                             </div>
                         )}
 
@@ -334,10 +321,10 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                     <button
                         type="button"
                         onClick={() => handleNext()}
-                        disabled={isTransitioning}
+                        disabled={isTransitioning || isCheckingLead}
                         className="px-8 py-3 bg-claudia-accent-green text-claudia-dark rounded-full font-bold uppercase tracking-wider hover:scale-105 hover:shadow-[0_0_20px_rgba(198,255,0,0.3)] transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
                     >
-                        {currentStepIndex === funnelConfig.questions.length - 1 ? 'Finalizar' : 'Siguiente'}
+                        {isCheckingLead ? 'Verificando...' : (currentStepIndex === funnelConfig.questions.length - 1 ? 'Finalizar' : 'Siguiente')}
                     </button>
                 )}
             </div>

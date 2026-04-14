@@ -42,7 +42,7 @@ export default function CalendarPicker({ onSchedule, onBack, apiUrl }: CalendarP
                         setAssignedCoach(data.coaches[0]);
                     }
 
-                     // Convert object mapping to DayAvailability[] array
+                    // Convert object mapping to DayAvailability[] array
                     const daysMapped: DayAvailability[] = Object.keys(data.availability).map(dateStr => ({
                         date: dateStr,
                         slots: data.availability[dateStr].map((item: any) => ({
@@ -69,11 +69,11 @@ export default function CalendarPicker({ onSchedule, onBack, apiUrl }: CalendarP
 
     const handleConfirm = (e?: React.MouseEvent) => {
         if (e && e.preventDefault) e.preventDefault();
-        
+
         if (selectedDate && selectedTime) {
             const currentSlots = availableDays.find(d => d.date === selectedDate)?.slots || [];
             const slot = currentSlots.find(s => s.time === selectedTime);
-            
+
             if (slot && slot.coach) {
                 onSchedule(selectedDate, selectedTime, slot.coach);
             } else {
@@ -139,13 +139,12 @@ export default function CalendarPicker({ onSchedule, onBack, apiUrl }: CalendarP
                                             setSelectedDate(day.date);
                                             setSelectedTime(null);
                                         }}
-                                        className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center ${
-                                            !hasSlots
+                                        className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center ${!hasSlots
                                                 ? 'opacity-40 cursor-not-allowed border-transparent bg-white/5 text-white/30'
                                                 : selectedDate === day.date
                                                     ? 'border-claudia-accent-green bg-claudia-accent-green/10 text-claudia-accent-green shadow-[0_0_15px_rgba(198,255,0,0.2)]'
                                                     : 'border-white/10 bg-white/5 text-white hover:border-white/30 hover:bg-white/10'
-                                        }`}
+                                            }`}
                                     >
                                         <span className="capitalize font-medium text-lg">{formatDateLabel(day.date).split(',')[0]}</span>
                                         <span className="text-xs opacity-70 mt-1">{formatDateLabel(day.date).split(',')[1]}</span>
