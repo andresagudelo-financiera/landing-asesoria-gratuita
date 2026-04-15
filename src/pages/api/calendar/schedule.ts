@@ -120,6 +120,20 @@ export const POST: APIRoute = async ({ request }) => {
             const lastName = nameParts.slice(1).join(' ') || '';
 
             // 2. Map form payload specifically to the webhook requested by the user
+            const utmSource = (data.leadDetails.utm_source || '').toLowerCase();
+            const utmMedium = (data.leadDetails.utm_medium || '').toLowerCase();
+            
+            // Deducción de respaldo en servidor por si el frontend no la envió
+            let finalFuente = data.leadDetails.fuente || "Organico";
+            let finalAgencia = data.leadDetails.agencia || "Asygnuz";
+
+            if (finalFuente === "Organico" || !data.leadDetails.fuente) {
+                if (utmSource.includes('ads') || utmSource.includes('meta') || utmMedium.includes('ads')) {
+                    finalFuente = "ADS";
+                    finalAgencia = "Escalads Groupe";
+                }
+            }
+
             const webhookPayload: any = {
                 "nombre": firstName,
                 "first-name": firstName,
@@ -135,9 +149,8 @@ export const POST: APIRoute = async ({ request }) => {
                 "objetivo": data.leadDetails.objetivo || "",
                 "coach": ENABLE_ROUND_ROBIN ? assignedCoach.email : "", // [VACÍO] - Se asignará en GHL vía automatización
                 "lead_id": data.leadDetails.lead_id || "",
-                // [FASE 1] Campos de enriquecimiento enviados por el frontend
-                "agencia": data.leadDetails.agencia || "Asygnuz",
-                "fuente": data.leadDetails.fuente || "Organico",
+                "agencia": finalAgencia,
+                "fuente": finalFuente,
                 "nivel_calificacion": data.leadDetails.nivel_calificacion || "Baja",
             };
 

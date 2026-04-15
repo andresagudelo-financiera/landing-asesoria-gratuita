@@ -69,12 +69,19 @@ export default function LeadFunnelContainer() {
     // Helpers internos para asegurar que funnelConfig y otros imports estén en scope
     const calcularAtribucion = (utms: Record<string, string>): Pick<LeadEnrichment, 'agencia' | 'fuente'> => {
         const source = (utms['utm_source'] || '').toLowerCase().trim();
-        if (source === 'meta ads') {
+        const medium = (utms['utm_medium'] || '').toLowerCase().trim();
+
+        // Si la fuente contiene 'ads' o 'meta', o el medio es 'ads' -> Atribuir a Agencia de Ads
+        if (source.includes('ads') || source.includes('meta') || medium.includes('ads')) {
             return { agencia: 'Escalads Groupe', fuente: 'ADS' };
         }
+
+        // Caso contrario, si hay alguna fuente pero no es de ads -> Orgánico
         if (source !== '') {
             return { agencia: 'Asygnuz', fuente: 'Organico' };
         }
+
+        // Fallback por defecto
         return { agencia: 'Asygnuz', fuente: 'Organico' };
     };
 
