@@ -37,7 +37,16 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
 
     const handleNext = async (overrideAnswer?: string) => {
         const answer = overrideAnswer !== undefined ? overrideAnswer : (answers[question.id] || '');
-        if (question.required && (!answer || answer.trim() === '')) {
+        
+        // Validación especial para nombre/apellido
+        if (question.id === 'nombre') {
+            const nombre = answers['nombre'] || '';
+            const apellido = answers['apellido'] || '';
+            if (!nombre.trim() || !apellido.trim()) {
+                setError('Por favor, ingresa tanto tu nombre como tu apellido.');
+                return;
+            }
+        } else if (question.required && (!answer || answer.trim() === '')) {
             setError('Por favor, completa este campo para continuar.');
             return;
         }
@@ -188,16 +197,44 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                         )}
 
                         {(question.type === 'text' || question.type === 'email') && (
-                            <div className="flex flex-col gap-2">
-                                <input
-                                    type={question.type}
-                                    autoFocus
-                                    value={answers[question.id] || ''}
-                                    onChange={handleInputChange}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder={question.placeholder}
-                                    className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-white text-lg focus:outline-none focus:border-claudia-accent-green focus:bg-white/10 transition-all placeholder:text-white/30"
-                                />
+                            <div className="flex flex-col gap-4">
+                                {question.id === 'nombre' ? (
+                                    <>
+                                        <input
+                                            type="text"
+                                            autoFocus
+                                            value={answers['nombre'] || ''}
+                                            onChange={(e) => {
+                                                setAnswers(prev => ({ ...prev, nombre: e.target.value }));
+                                                if (error) setError('');
+                                            }}
+                                            onKeyDown={handleKeyDown}
+                                            placeholder="Tu nombre"
+                                            className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-white text-lg focus:outline-none focus:border-claudia-accent-green focus:bg-white/10 transition-all placeholder:text-white/30"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={answers['apellido'] || ''}
+                                            onChange={(e) => {
+                                                setAnswers(prev => ({ ...prev, apellido: e.target.value }));
+                                                if (error) setError('');
+                                            }}
+                                            onKeyDown={handleKeyDown}
+                                            placeholder="Tu apellido"
+                                            className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-white text-lg focus:outline-none focus:border-claudia-accent-green focus:bg-white/10 transition-all placeholder:text-white/30"
+                                        />
+                                    </>
+                                ) : (
+                                    <input
+                                        type={question.type}
+                                        autoFocus
+                                        value={answers[question.id] || ''}
+                                        onChange={handleInputChange}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder={question.placeholder}
+                                        className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-white text-lg focus:outline-none focus:border-claudia-accent-green focus:bg-white/10 transition-all placeholder:text-white/30"
+                                    />
+                                )}
                             </div>
                         )}
 

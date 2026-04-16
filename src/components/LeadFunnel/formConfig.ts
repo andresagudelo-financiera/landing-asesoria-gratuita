@@ -26,8 +26,8 @@ export const funnelConfig: FormConfig = {
         {
             id: "nombre",
             type: "text",
-            question: "¿Cuál es tu nombre completo?",
-            placeholder: "Ej. María Pérez",
+            question: "¿Cómo te llamas?",
+            placeholder: "Tu nombre",
             required: true,
         },
         {

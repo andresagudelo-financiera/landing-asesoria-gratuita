@@ -194,26 +194,33 @@ export default function LeadFunnelContainer() {
 
     const handleFormNext = async (data: Record<string, string>) => {
         setIsProcessing(true);
-        setLeadData(data);
+        
+        // Concatenar nombre y apellido antes de guardar y procesar
+        const formattedData: Record<string, string> = {
+            ...data,
+            nombre: `${data.nombre || ''} ${data.apellido || ''}`.trim()
+        };
+        
+        setLeadData(formattedData);
 
         // [FASE 1] Calcular atribución y calificación con los datos recién obtenidos
         const utms = getSavedUTMs();
         const { agencia, fuente } = calcularAtribucion(utms);
-        const nivel_calificacion = calcularNivelCalificacion(data);
+        const nivel_calificacion = calcularNivelCalificacion(formattedData);
         const enrichment: LeadEnrichment = { agencia, fuente, nivel_calificacion };
         setLeadEnrichment(enrichment);
 
         // Si el lead es calificado como Bajo, redirigir al flujo de descalificados
         if (nivel_calificacion === 'Baja') {
-            handleFormDisqualified(data);
+            handleFormDisqualified(formattedData);
             return;
         }
 
         // Evento GA4: Perfilamiento Completo (Lead) — enriquecido con atribución y calificación
         if (typeof window !== 'undefined' && 'gtag' in window) {
             (window as any).gtag('event', 'generate_lead', {
-                lead_type: data.perfil || 'standard',
-                income_range: data.ingresos || 'unknown',
+                lead_type: formattedData.perfil || 'standard',
+                income_range: formattedData.ingresos || 'unknown',
                 // [FASE 1] Propiedades de enriquecimiento
                 agencia,
                 fuente,
@@ -248,7 +255,7 @@ export default function LeadFunnelContainer() {
                     body: JSON.stringify({
                         skipCalendar: true,
                         leadDetails: {
-                            ...data,
+                            ...formattedData,
                             ...utmsFetch,
                             agencia: ag,
                             fuente: fu,
@@ -286,7 +293,7 @@ export default function LeadFunnelContainer() {
             // Stage 3 siempre se muestra (dentro del modal, detrás del popup)
             setStage(3);
         } else {
-            handleSubmitLeadOnly(data, enrichment);
+            handleSubmitLeadOnly(formattedData, enrichment);
         }
     };
 
