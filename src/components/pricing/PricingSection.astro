@@ -158,7 +158,8 @@ const packages = [
 
             <!-- CTA -->
             <a
-              href={pkg.url}
+              href="#"
+              onclick="window.dispatchEvent(new CustomEvent('open-lead-funnel')); return false;"
               class={`w-full py-5 px-8 rounded-2xl font-black text-center uppercase tracking-widest transition-all duration-300 transform group-hover:-translate-y-1 ${
                 pkg.popular 
                 ? 'bg-claudia-accent-orange text-white shadow-[0_10px_30px_rgba(255,152,0,0.3)] hover:shadow-[0_15px_40px_rgba(255,152,0,0.4)]' 
@@ -169,7 +170,7 @@ const packages = [
             </a>
             
             <p class="text-[10px] text-center text-claudia-text-gray/40 mt-4 uppercase tracking-widest">
-                Pago protegido vía Hotmart
+                Postulación gratuita para sesión estratégica
             </p>
           </div>
         </div>

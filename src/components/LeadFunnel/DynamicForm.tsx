@@ -40,9 +40,9 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
         
         // Validación especial para nombre/apellido
         if (question.id === 'nombre') {
-            const nombre = answers['nombre'] || '';
-            const apellido = answers['apellido'] || '';
-            if (!nombre.trim() || !apellido.trim()) {
+            const nombre = (answers['nombre'] || '').trim();
+            const apellido = (answers['apellido'] || '').trim();
+            if (!nombre || !apellido) {
                 setError('Por favor, ingresa tanto tu nombre como tu apellido.');
                 return;
             }
@@ -154,7 +154,30 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') handleNext();
+        if (e.key === 'Enter') {
+            handleNext();
+        }
+    };
+
+    const isCurrentStepValid = () => {
+        if (question.id === 'nombre') {
+            return (answers['nombre'] || '').trim().length > 1 && (answers['apellido'] || '').trim().length > 1;
+        }
+        if (question.type === 'email') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test((answers['email'] || '').trim());
+        }
+        if (question.type === 'tel') {
+            const cleanPhone = (answers[question.id] || '').replace(/[\s-]/g, '');
+            return /^\+[0-9]{7,15}$/.test(cleanPhone);
+        }
+        if (question.type === 'single-choice') {
+            return !!answers[question.id];
+        }
+        if (question.required) {
+            return (answers[question.id] || '').trim().length > 0;
+        }
+        return true;
     };
 
     return (
@@ -258,43 +281,35 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                                         box-shadow: none;
                                     }
                                     .react-tel-input .flag-dropdown {
-                                        background-color: rgba(255, 255, 255, 0.05);
-                                        border: none;
-                                        border-right: 2px solid rgba(255, 255, 255, 0.1);
-                                        border-radius: 0.75rem 0 0 0.75rem;
-                                        width: 60px;
+                                        background-color: transparent !important;
+                                        border: none !important;
+                                        border-radius: 0.75rem 0 0 0.75rem !important;
+                                        padding-left: 10px;
                                     }
-                                    .react-tel-input .flag-dropdown:hover, 
-                                    .react-tel-input .flag-dropdown:focus,
-                                    .react-tel-input .flag-dropdown.open {
-                                        background-color: rgba(255, 255, 255, 0.08);
-                                        border-radius: 0.75rem 0 0 0.75rem;
-                                    }
-                                    .react-tel-input .flag-dropdown.open .selected-flag {
-                                        background-color: transparent;
-                                    }
-                                    .react-tel-input .selected-flag {
-                                        padding-left: 14px;
-                                        width: 60px;
-                                        border-radius: 0.75rem 0 0 0.75rem;
-                                        background-color: transparent;
-                                    }
-                                    .react-tel-input .selected-flag .arrow {
-                                        left: 40px;
+                                    .react-tel-input .selected-flag:hover,
+                                    .react-tel-input .selected-flag:focus {
+                                        background-color: rgba(255, 255, 255, 0.05) !important;
+                                        border-radius: 0.5rem;
                                     }
                                     .react-tel-input .country-list {
-                                        background-color: #1a1a1a;
-                                        color: white;
-                                        border: 1px solid rgba(255, 255, 255, 0.1);
-                                        border-radius: 0.5rem;
-                                        margin-top: 8px;
+                                        background-color: #0A0F14 !important;
+                                        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                                        border-radius: 1rem !important;
+                                        margin-top: 5px !important;
+                                        box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+                                        custom-scrollbar;
                                     }
-                                    .react-tel-input .country-list .country:hover,
+                                    .react-tel-input .country-list .country {
+                                        color: white !important;
+                                        padding: 12px 15px !important;
+                                        transition: background-color 0.2s;
+                                    }
+                                    .react-tel-input .country-list .country:hover {
+                                        background-color: rgba(255, 255, 255, 0.05) !important;
+                                    }
                                     .react-tel-input .country-list .country.highlight {
-                                        background-color: rgba(255, 255, 255, 0.1);
-                                    }
-                                    .react-tel-input .form-control::placeholder {
-                                        color: rgba(255, 255, 255, 0.3);
+                                        background-color: rgba(198, 255, 0, 0.1) !important;
+                                        color: #C6FF00 !important;
                                     }
                                 `}</style>
                                 <PhoneInput
@@ -310,13 +325,10 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                                         const dialCode = countryData?.dialCode || '';
                                         let cleanPhoneString = phone;
                                         
-                                        // [FIX] Mitigar que el usuario repita el indicativo manualmente
-                                        // Si el número empieza con el dialCode duplicado (ej. 5757...), quitamos uno
                                         if (dialCode && cleanPhoneString.startsWith(dialCode + dialCode)) {
                                             cleanPhoneString = cleanPhoneString.substring(dialCode.length);
                                         }
 
-                                        // Si el teléfono empieza con el código de país, lo separamos con un espacio
                                         if (dialCode && cleanPhoneString.startsWith(dialCode)) {
                                             const numberPart = cleanPhoneString.substring(dialCode.length);
                                             cleanPhoneString = `+${dialCode} ${numberPart}`;
@@ -358,8 +370,8 @@ export default function DynamicForm({ onNext, onDisqualified, onProgressUpdate }
                     <button
                         type="button"
                         onClick={() => handleNext()}
-                        disabled={isTransitioning || isCheckingLead}
-                        className="px-8 py-3 bg-claudia-accent-green text-claudia-dark rounded-full font-bold uppercase tracking-wider hover:scale-105 hover:shadow-[0_0_20px_rgba(198,255,0,0.3)] transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                        disabled={isTransitioning || isCheckingLead || !isCurrentStepValid()}
+                        className="px-8 py-3 bg-claudia-accent-green text-claudia-dark rounded-full font-bold uppercase tracking-wider hover:scale-105 hover:shadow-[0_0_20px_rgba(198,255,0,0.3)] transition-all disabled:opacity-50 disabled:grayscale disabled:hover:scale-100 disabled:cursor-not-allowed"
                     >
                         {isCheckingLead ? 'Verificando...' : (currentStepIndex === funnelConfig.questions.length - 1 ? 'Finalizar' : 'Siguiente')}
                     </button>
