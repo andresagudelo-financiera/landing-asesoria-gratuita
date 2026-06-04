@@ -5,9 +5,6 @@ export interface CoachPhone {
 }
 
 export const coachPhones: CoachPhone[] = [
-    { name: "Alejandra Gutierrez", phone: "573165778662", whatsappLink: "https://api.whatsapp.com/send?phone=573165778662" },
-    { name: "Alejandra Gutierrez", phone: "573175785050", whatsappLink: "https://api.whatsapp.com/send?phone=573175785050" },
-    { name: "Alexandra Perdomo", phone: "573106192136", whatsappLink: "https://api.whatsapp.com/send?phone=573106192136" },
     { name: "Andrea Estrada", phone: "573185523737", whatsappLink: "https://api.whatsapp.com/send?phone=573185523737" },
     { name: "Andrea Reyes", phone: "573054478537", whatsappLink: "https://api.whatsapp.com/send?phone=573054478537" },
     { name: "Bryan Rozo", phone: "573148168325", whatsappLink: "https://api.whatsapp.com/send?phone=573148168325" },
