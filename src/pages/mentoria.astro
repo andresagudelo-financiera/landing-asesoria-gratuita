@@ -89,7 +89,7 @@ import MainLayout from "../layouts/MainLayout.astro";
           <div class="absolute -inset-1 bg-gradient-to-r from-claudia-accent-orange to-orange-400 rounded-3xl blur-lg opacity-20 group-hover:opacity-40 transition duration-1000"></div>
           <div class="relative glassmorphism rounded-3xl p-8 lg:p-10 pt-20 lg:pt-24 border border-white/10 bg-[#0f172a]/80 backdrop-blur-xl">
             <h3 class="text-2xl font-bold text-white mb-6 text-center">Aplica a la mentoría</h3>
-          <form class="space-y-6" onsubmit="event.preventDefault(); alert('Gracias por aplicar. Nos pondremos en contacto contigo pronto.');">
+          <form id="mentoria-form" class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
                 <label for="nombre" class="text-sm font-medium text-soft-gray">Nombre</label>
@@ -122,13 +122,33 @@ import MainLayout from "../layouts/MainLayout.astro";
               </div>
             </div>
 
-            <button type="submit" class="w-full mt-4 px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white font-bold uppercase tracking-wider rounded-xl shadow-[0_0_30px_rgba(255,152,0,0.3)] transition-all duration-300 hover:-translate-y-1">
-              Solicitar Evaluación
+            <button id="mentoria-submit-btn" type="submit" class="relative w-full mt-4 px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white font-bold uppercase tracking-wider rounded-xl shadow-[0_0_30px_rgba(255,152,0,0.3)] transition-all duration-300 hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <svg id="mentoria-btn-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span id="mentoria-btn-text">Solicitar Evaluación</span>
             </button>
             <p class="text-center text-[11px] text-soft-gray/60 mt-4 leading-tight px-4">
                 *Las aplicaciones son revisadas por nuestro comité. Solo se admitirán perfiles que cumplan el requerimiento de capital.
             </p>
           </form>
+
+          <!-- Success Message -->
+          <div id="mentoria-success-msg" class="hidden text-center py-8">
+            <div class="w-20 h-20 mx-auto bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-6">
+              <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">¡Solicitud Recibida!</h3>
+            <p class="text-soft-gray mb-6">
+              Hemos recibido tu información con éxito. Nuestro equipo revisará tu perfil y se pondrá en contacto contigo en breve para agendar la mentoría si cumples con los requisitos.
+            </p>
+            <a href="/" class="inline-block px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors">
+              Volver al inicio
+            </a>
+          </div>
         </div>
 
         <!-- Testimonial (Social Proof) -->
@@ -196,6 +216,7 @@ import MainLayout from "../layouts/MainLayout.astro";
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Modal Logic
       const modal = document.getElementById('exclusivity-modal');
       const acceptBtn = document.getElementById('accept-modal-btn');
       
@@ -212,6 +233,82 @@ import MainLayout from "../layouts/MainLayout.astro";
           setTimeout(() => {
             modal.style.display = 'none';
           }, 500);
+        });
+      }
+
+      // Form Submission Logic
+      const form = document.getElementById('mentoria-form');
+      const submitBtn = document.getElementById('mentoria-submit-btn');
+      const btnText = document.getElementById('mentoria-btn-text');
+      const btnSpinner = document.getElementById('mentoria-btn-spinner');
+      const successMsg = document.getElementById('mentoria-success-msg');
+
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          // 1. Get Form Data
+          const formData = new FormData(form as HTMLFormElement);
+          const data: any = {
+            nombre: formData.get('nombre'),
+            apellido: formData.get('apellido'),
+            email: formData.get('email'),
+            capital: formData.get('capital'),
+            source: window.location.href,
+            page: 'Mentoría High-Ticket'
+          };
+
+          // 2. Capture UTMs
+          const urlParams = new URLSearchParams(window.location.search);
+          const utms = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+          utms.forEach(utm => {
+            if (urlParams.has(utm)) {
+              data[utm] = urlParams.get(utm);
+            }
+          });
+
+          // 3. UI Loading State
+          (submitBtn as HTMLButtonElement).disabled = true;
+          if(btnText) btnText.textContent = "Enviando...";
+          if(btnSpinner) btnSpinner.classList.remove('hidden');
+
+          try {
+            // 4. Send to Webhook
+            const response = await fetch('https://services.leadconnectorhq.com/hooks/glYhQdAwhCpqHLt5CCIH/webhook-trigger/ce8gSjYfOIEWc6EF4F4H', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+               // Success UI
+               form.style.display = 'none';
+               if(successMsg) successMsg.classList.remove('hidden');
+               
+               // Trigger tracking pixels
+               if (typeof window !== 'undefined') {
+                 if ((window as any).fbq) {
+                   (window as any).fbq('track', 'Lead', { currency: 'USD', value: 50000 });
+                 }
+                 if ((window as any).gtag) {
+                   (window as any).gtag('event', 'generate_lead', { currency: 'USD', value: 50000 });
+                 }
+               }
+            } else {
+               alert('Hubo un error al enviar tu solicitud. Por favor intenta nuevamente.');
+               (submitBtn as HTMLButtonElement).disabled = false;
+               if(btnText) btnText.textContent = "Solicitar Evaluación";
+               if(btnSpinner) btnSpinner.classList.add('hidden');
+            }
+          } catch (error) {
+             console.error('Error submitting form:', error);
+             alert('Hubo un error de conexión. Por favor revisa tu internet e intenta nuevamente.');
+             (submitBtn as HTMLButtonElement).disabled = false;
+             if(btnText) btnText.textContent = "Solicitar Evaluación";
+             if(btnSpinner) btnSpinner.classList.add('hidden');
+          }
         });
       }
     });
