@@ -107,6 +107,11 @@ import MainLayout from "../layouts/MainLayout.astro";
             </div>
 
             <div class="space-y-2">
+              <label for="celular" class="text-sm font-medium text-soft-gray">Número de celular (WhatsApp)</label>
+              <input type="tel" id="celular" name="celular" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-claudia-accent-orange focus:ring-1 focus:ring-claudia-accent-orange transition" placeholder="+57 300 000 0000" />
+            </div>
+
+            <div class="space-y-2">
               <label for="capital" class="text-sm font-medium text-soft-gray">Cuánto capital líquido tienes</label>
               <div class="relative">
                 <select id="capital" name="capital" required class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-claudia-accent-orange focus:ring-1 focus:ring-claudia-accent-orange transition appearance-none">
@@ -324,6 +329,7 @@ import MainLayout from "../layouts/MainLayout.astro";
             nombre: formData.get('nombre'),
             apellido: formData.get('apellido'),
             email: formData.get('email'),
+            phone: formData.get('celular'),
             capital: formData.get('capital'),
             source: window.location.href,
             page: 'Mentoría High-Ticket'
