@@ -89,7 +89,7 @@ import MainLayout from "../layouts/MainLayout.astro";
           <div class="absolute -inset-1 bg-gradient-to-r from-claudia-accent-orange to-orange-400 rounded-3xl blur-lg opacity-20 group-hover:opacity-40 transition duration-1000"></div>
           <div class="relative glassmorphism rounded-3xl p-8 lg:p-10 pt-20 lg:pt-24 border border-white/10 bg-[#0f172a]/80 backdrop-blur-xl">
             <h3 class="text-2xl font-bold text-white mb-6 text-center">Aplica a la mentoría</h3>
-          <form id="mentoria-form" class="space-y-6">
+          <form id="mentoria-form" class="space-y-6" novalidate>
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
                 <label for="nombre" class="text-sm font-medium text-soft-gray">Nombre</label>
@@ -108,7 +108,26 @@ import MainLayout from "../layouts/MainLayout.astro";
 
             <div class="space-y-2">
               <label for="celular" class="text-sm font-medium text-soft-gray">Número de celular (WhatsApp)</label>
-              <input type="tel" id="celular" name="celular" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-claudia-accent-orange focus:ring-1 focus:ring-claudia-accent-orange transition" placeholder="+57 300 000 0000" />
+              <div class="flex gap-2">
+                <div class="relative w-[35%] min-w-[110px]">
+                  <select id="countryCode" name="countryCode" required class="w-full bg-black/50 border border-white/10 rounded-xl px-2 py-3 text-white focus:outline-none focus:border-claudia-accent-orange focus:ring-1 focus:ring-claudia-accent-orange transition appearance-none">
+                    <option value="+57">🇨🇴 +57</option>
+                    <option value="+52">🇲🇽 +52</option>
+                    <option value="+54">🇦🇷 +54</option>
+                    <option value="+56">🇨🇱 +56</option>
+                    <option value="+51">🇵🇪 +51</option>
+                    <option value="+593">🇪🇨 +593</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+34">🇪🇸 +34</option>
+                    <option value="+507">🇵🇦 +507</option>
+                    <option value="+506">🇨🇷 +506</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
+                <input type="tel" id="celular" name="celular" required inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-claudia-accent-orange focus:ring-1 focus:ring-claudia-accent-orange transition" placeholder="3000000000" />
+              </div>
             </div>
 
             <div class="space-y-2">
@@ -127,7 +146,21 @@ import MainLayout from "../layouts/MainLayout.astro";
               </div>
             </div>
 
-            <button id="mentoria-submit-btn" type="submit" class="relative w-full mt-4 px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white font-bold uppercase tracking-wider rounded-xl shadow-[0_0_30px_rgba(255,152,0,0.3)] transition-all duration-300 hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            <div id="extra-question-container" class="space-y-2 hidden mt-4">
+              <label class="text-sm font-medium text-soft-gray">¿Estarías dispuesto a invertir $5.000 USD en una mentoría directa con Claudia Uribe, donde aprenderás a hacer crecer tu capital entre un 10% y un 20% efectivo anual, según tu perfil de riesgo?</label>
+              <div class="flex gap-4 mt-2">
+                <label class="flex-1 relative cursor-pointer">
+                  <input type="radio" name="dispuestoInvertir" value="Sí" class="peer sr-only">
+                  <div class="w-full text-center bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white peer-checked:bg-claudia-accent-orange/20 peer-checked:border-claudia-accent-orange peer-checked:text-claudia-accent-orange transition-all font-medium">Sí</div>
+                </label>
+                <label class="flex-1 relative cursor-pointer">
+                  <input type="radio" name="dispuestoInvertir" value="No" class="peer sr-only">
+                  <div class="w-full text-center bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white peer-checked:bg-claudia-accent-orange/20 peer-checked:border-claudia-accent-orange peer-checked:text-claudia-accent-orange transition-all font-medium">No</div>
+                </label>
+              </div>
+            </div>
+
+            <button id="mentoria-submit-btn" type="submit" class="relative w-full mt-4 px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white font-bold uppercase tracking-wider rounded-xl shadow-[0_0_30px_rgba(255,152,0,0.3)] transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
               <svg id="mentoria-btn-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -241,6 +274,36 @@ import MainLayout from "../layouts/MainLayout.astro";
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Validaciones estrictas por país
+      const phoneValidations: Record<string, { regex: RegExp, error: string }> = {
+        '+57': { regex: /^3\d{9}$/, error: 'En Colombia, el celular debe tener 10 dígitos y empezar por 3 (no repitas el 57).' },
+        '+52': { regex: /^\d{10}$/, error: 'En México, el celular debe tener 10 dígitos (no repitas el 52).' },
+        '+54': { regex: /^\d{10}$/, error: 'En Argentina, el celular debe tener 10 dígitos (código de área + número sin 15).' },
+        '+56': { regex: /^9\d{8}$/, error: 'En Chile, el celular debe tener 9 dígitos y empezar por 9 (no repitas el 56).' },
+        '+51': { regex: /^9\d{8}$/, error: 'En Perú, el celular debe tener 9 dígitos y empezar por 9.' },
+        '+593': { regex: /^9\d{8}$/, error: 'En Ecuador, el celular debe tener 9 dígitos y empezar por 9.' },
+        '+1': { regex: /^\d{10}$/, error: 'En USA/Canadá, el celular debe tener 10 dígitos (no repitas el 1).' },
+        '+34': { regex: /^[67]\d{8}$/, error: 'En España, el celular debe tener 9 dígitos y empezar por 6 o 7.' },
+        '+507': { regex: /^6\d{7}$/, error: 'En Panamá, el celular debe tener 8 dígitos y empezar por 6.' },
+        '+506': { regex: /^[678]\d{7}$/, error: 'En Costa Rica, el celular debe tener 8 dígitos y empezar por 6, 7 u 8.' }
+      };
+
+      // Capital Select Logic
+      const capitalSelect = document.getElementById('capital');
+      const extraQuestionContainer = document.getElementById('extra-question-container');
+      const dispuestoInvertirRadios = document.querySelectorAll('input[name="dispuestoInvertir"]');
+
+      if (capitalSelect && extraQuestionContainer && dispuestoInvertirRadios.length) {
+        capitalSelect.addEventListener('change', (e) => {
+          if ((e.target as HTMLSelectElement).value === 'Menos de $50,000 USD') {
+            extraQuestionContainer.classList.remove('hidden');
+          } else {
+            extraQuestionContainer.classList.add('hidden');
+            dispuestoInvertirRadios.forEach((radio: any) => radio.checked = false);
+          }
+        });
+      }
+
       // Exclusivity Modal Logic
       const modal = document.getElementById('exclusivity-modal');
       const acceptBtn = document.getElementById('accept-modal-btn');
@@ -313,8 +376,8 @@ import MainLayout from "../layouts/MainLayout.astro";
       };
 
       // Form Submission Logic
-      const form = document.getElementById('mentoria-form');
-      const submitBtn = document.getElementById('mentoria-submit-btn');
+      const form = document.getElementById('mentoria-form') as HTMLFormElement;
+      const submitBtn = document.getElementById('mentoria-submit-btn') as HTMLButtonElement;
       const btnText = document.getElementById('mentoria-btn-text');
       const btnSpinner = document.getElementById('mentoria-btn-spinner');
       const successMsg = document.getElementById('mentoria-success-msg');
@@ -325,12 +388,49 @@ import MainLayout from "../layouts/MainLayout.astro";
           
           // 1. Get Form Data
           const formData = new FormData(form as HTMLFormElement);
+          
+          const requiredFields = [
+            { name: 'nombre', label: 'Nombre' },
+            { name: 'apellido', label: 'Apellidos' },
+            { name: 'email', label: 'Correo Electrónico' },
+            { name: 'countryCode', label: 'Indicativo de País' },
+            { name: 'celular', label: 'Número de Celular' },
+            { name: 'capital', label: 'Capital Líquido' }
+          ];
+
+          for (const field of requiredFields) {
+            if (!formData.get(field.name) || (formData.get(field.name) as string).trim() === '') {
+              showNotification('error', 'Faltan datos', `El campo "${field.label}" es obligatorio.`);
+              return;
+            }
+          }
+
+          if (formData.get('capital') === 'Menos de $50,000 USD' && !formData.get('dispuestoInvertir')) {
+             showNotification('error', 'Faltan datos', `Por favor responde si estarías dispuesto a invertir en la mentoría.`);
+             return;
+          }
+          
+          let rawPhone = (formData.get('celular') as string) || '';
+          let countryCode = (formData.get('countryCode') as string) || '+57';
+          
+          // Limpiar número (remover espacios, guiones, paréntesis)
+          let cleanPhone = rawPhone.replace(/[\s\-()]/g, '');
+
+          const validation = phoneValidations[countryCode];
+          if (validation && !validation.regex.test(cleanPhone)) {
+             showNotification('error', 'Número de WhatsApp inválido', validation.error);
+             return; // Detener el envío para que el usuario lo corrija
+          }
+          
+          const fullPhone = `${countryCode} ${cleanPhone}`;
+
           const data: any = {
             nombre: formData.get('nombre'),
             apellido: formData.get('apellido'),
             email: formData.get('email'),
-            phone: formData.get('celular'),
+            phone: fullPhone,
             capital: formData.get('capital'),
+            dispuestoInvertir: formData.get('dispuestoInvertir'),
             source: window.location.href,
             page: 'Mentoría High-Ticket'
           };
@@ -351,12 +451,37 @@ import MainLayout from "../layouts/MainLayout.astro";
 
           try {
             // 4. Send to Webhook
-            const response = await fetch('https://services.leadconnectorhq.com/hooks/glYhQdAwhCpqHLt5CCIH/webhook-trigger/ce8gSjYfOIEWc6EF4F4H', {
+            let webhookUrl = 'https://services.leadconnectorhq.com/hooks/glYhQdAwhCpqHLt5CCIH/webhook-trigger/ce8gSjYfOIEWc6EF4F4H';
+            let payloadToSend = { ...data };
+            
+            if (data.capital === 'Menos de $50,000 USD' && data.dispuestoInvertir === 'No') {
+              webhookUrl = 'https://services.leadconnectorhq.com/hooks/vEh7JAwgMFnBubxjOxId/webhook-trigger/8b06b917-b26c-4535-bd62-0886f99b0e3e';
+              
+              const isAds = data.utm_source && (data.utm_source.toLowerCase().includes('ads') || data.utm_source.toLowerCase().includes('meta'));
+              
+              payloadToSend = {
+                "nombre": data.nombre,
+                "first-name": data.nombre,
+                "last-name": data.apellido,
+                "email": data.email,
+                "telefono": data.phone,
+                "ocupacion": "none",
+                "fecha": new Date().toISOString(),
+                "capital_liquido": data.capital,
+                "dispuesto_invertir": data.dispuestoInvertir,
+                "agencia": isAds ? "Escalads Groupe" : "Asygnuz",
+                "fuente": isAds ? "ADS" : "Organico",
+                "nivel_calificacion": "Baja",
+                ...data
+              };
+            }
+
+            const response = await fetch(webhookUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify(data)
+              body: JSON.stringify(payloadToSend)
             });
 
             if (response.ok) {
