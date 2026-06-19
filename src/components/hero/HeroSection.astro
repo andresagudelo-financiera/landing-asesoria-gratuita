@@ -8,8 +8,17 @@ import HeroBackground from "./HeroBackground";
 
 // ... (existing constants)
 
+export interface Props {
+  isPaid?: boolean;
+  ctaUrl?: string;
+}
+
+const {
+  isPaid = false,
+  ctaUrl = "https://viewer.leapchat.digital/mv-asesoria-gratuita"
+} = Astro.props;
+
 const hotmartUrl = "https://pay.hotmart.com/Q104268411L?off=daig1z7w";
-const ctaUrl = "https://viewer.leapchat.digital/mv-asesoria-gratuita";
 ---
 
 <section
@@ -77,20 +86,21 @@ const ctaUrl = "https://viewer.leapchat.digital/mv-asesoria-gratuita";
           class="text-xl lg:text-2xl text-claudia-text-gray font-light max-w-xl"
           style="line-height: 1.6;"
         >
-          Te obsequiamos un espacio de alto valor con un <span
-            class="text-claudia-accent-green font-medium">Money Strategist</span
-          > especializado. Valor comercial de <span class="text-claudia-accent-green font-bold"
-            >250 USD</span
-          >. Identificaremos tus patrones financieros y trazaremos tu mapa de
-          crecimiento.
+          {isPaid ? (
+            <>Reserva tu sesión estratégica con un <span class="text-claudia-accent-green font-medium">Money Strategist</span> especializado por solo <span class="text-claudia-accent-green font-bold">50 USD</span> (Valor comercial de 250 USD). Identificaremos tus patrones financieros y trazaremos tu mapa de crecimiento.</>
+          ) : (
+            <>Te obsequiamos un espacio de alto valor con un <span class="text-claudia-accent-green font-medium">Money Strategist</span> especializado. Valor comercial de <span class="text-claudia-accent-green font-bold">250 USD</span>. Identificaremos tus patrones financieros y trazaremos tu mapa de crecimiento.</>
+          )}
         </p>
 
         <!-- CTA Section -->
         <div class="flex flex-col items-start gap-4 pt-4">
           <!-- CTA Button -->
           <a
-            href="#"
-            onclick="window.dispatchEvent(new CustomEvent('open-lead-funnel')); return false;"
+            href={isPaid ? ctaUrl : "#"}
+            onclick={isPaid ? undefined : "window.dispatchEvent(new CustomEvent('open-lead-funnel')); return false;"}
+            target={isPaid ? "_blank" : undefined}
+            rel={isPaid ? "noopener noreferrer" : undefined}
             data-track="hero_cta"
             class="group relative inline-flex items-center justify-center px-8 py-4 bg-claudia-accent-green text-claudia-dark font-bold text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(198,255,0,0.4)]"
           >

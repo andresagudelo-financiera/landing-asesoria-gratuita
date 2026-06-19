@@ -1,0 +1,52 @@
+---
+/**
+ * Sesión Estratégica Paga - Landing Page 
+ * Finanzas con Claudia Uribe
+ */
+
+import MainLayout from "../layouts/MainLayout.astro";
+import HeroSection from "../components/hero/HeroSection.astro";
+import ValuePropsSection from "../components/benefits/ValuePropsSection.astro";
+import TeamSection from "../components/team/TeamSection.astro";
+import BioSection from "../components/bio/BioSection.astro";
+import TestimonialsSection from "../components/testimonials/TestimonialsSection.astro";
+import FAQSection from "../components/faq/FAQSection.astro";
+import PricingSection from "../components/pricing/PricingSection.astro";
+import Footer from "../components/footer/Footer.astro";
+
+import StickyCTA from "../components/cta/StickyCTA";
+
+import "../styles/global.css";
+
+const hotmartUrl = "https://pay.hotmart.com/F106394079L";
+---
+
+<MainLayout isPaid={true} title="Reserva tu Sesión Estratégica de Inversión | Finanzas con Claudia Uribe®">
+  <!-- Hero Section -->
+  <HeroSection isPaid={true} ctaUrl={hotmartUrl} />
+
+  <!-- Value Propositions / "Lo que sucede" -->
+  <ValuePropsSection isPaid={true} ctaUrl={hotmartUrl} />
+
+  <!-- Team Section - Coaches Marquee -->
+  <TeamSection />
+
+  <!-- Bio Section - "Soy Claudia Uribe" -->
+  <BioSection />
+
+  <!-- Social Proof -->
+  <TestimonialsSection />
+
+  <!-- Objection Handling -->
+  <FAQSection isPaid={true} />
+  
+  <!-- Pricing Options -->
+  <PricingSection isPaid={true} ctaUrl={hotmartUrl} />
+
+
+  <!-- Footer -->
+  <Footer />
+
+  <!-- Sticky CTA - React Island -->
+  <StickyCTA client:load isPaid={true} ctaUrl={hotmartUrl} />
+</MainLayout>

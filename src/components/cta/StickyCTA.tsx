@@ -6,8 +6,9 @@ import { useState, useEffect } from 'react';
  * Dispara evento InitiateCheckout de Meta Pixel
  */
 export default function StickyCTA({
-  ctaUrl = "https://typebot.co/asesoria-gratuita-org-nova-050sprd"
-}: { ctaUrl?: string }) {
+  ctaUrl = "https://typebot.co/asesoria-gratuita-org-nova-050sprd",
+  isPaid = false
+}: { ctaUrl?: string, isPaid?: boolean }) {
   const [isVisible, setIsVisible] = useState(false);
   const [finalUrl, setFinalUrl] = useState(ctaUrl);
 
@@ -46,8 +47,10 @@ export default function StickyCTA({
         href={finalUrl}
         data-track="sticky_cta"
         onClick={(e) => {
-          e.preventDefault();
-          window.dispatchEvent(new CustomEvent('open-lead-funnel'));
+          if (!isPaid) {
+            e.preventDefault();
+            window.dispatchEvent(new CustomEvent('open-lead-funnel'));
+          }
         }}
         className="
           relative

@@ -2,11 +2,13 @@
 interface Props {
   title?: string;
   description?: string;
+  isPaid?: boolean;
 }
 
 const {
   title = "Sesión Estratégica de Inversión | Finanzas con Claudia Uribe®",
   description = "Agenda tu sesión estratégica de inversión con un Money Strategist especializado. Identifica tus patrones financieros y traza tu mapa de crecimiento con el equipo de Claudia Uribe.",
+  isPaid = false,
 } = Astro.props;
 
 import "../styles/global.css";
@@ -39,7 +41,7 @@ const organizationSchema = {
     name: "Colombia",
   },
   serviceType: "Planeación Financiera",
-  priceRange: "250 - 1100 USD",
+  priceRange: isPaid ? "50 - 1100 USD" : "250 - 1100 USD",
   sameAs: ["https://www.instagram.com/soyclaudiauribe/"],
 };
 
@@ -53,7 +55,9 @@ const faqSchema = {
       name: "¿Cuál es el costo de la sesión estratégica?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "La sesión estratégica tiene un valor comercial de 250 USD. Sin embargo, para los postulantes que califiquen, la sesión se realiza sin costo como primer paso de nuestro acompañamiento profesional. Si deseas continuar con un acompañamiento más profundo, ofrecemos paquetes de 3 sesiones por 675 USD (ahorras 75 USD) y 5 sesiones por 1,100 USD (ahorras 150 USD).",
+        text: isPaid 
+          ? "La sesión estratégica tiene un valor especial de 50 USD (valor comercial de 250 USD). Si deseas continuar con un acompañamiento más profundo, ofrecemos paquetes de 3 sesiones por 675 USD (ahorras 75 USD) y 5 sesiones por 1,100 USD (ahorras 150 USD)."
+          : "La sesión estratégica tiene un valor comercial de 250 USD. Sin embargo, para los postulantes que califiquen, la sesión se realiza sin costo como primer paso de nuestro acompañamiento profesional. Si deseas continuar con un acompañamiento más profundo, ofrecemos paquetes de 3 sesiones por 675 USD (ahorras 75 USD) y 5 sesiones por 1,100 USD (ahorras 150 USD).",
       },
     },
     {
@@ -97,7 +101,7 @@ const serviceSchema = {
   serviceType: "Diagnóstico Financiero",
   offers: {
     "@type": "Offer",
-    price: "250",
+    price: isPaid ? "50" : "250",
     priceCurrency: "USD",
     availability: "https://schema.org/LimitedAvailability",
     description:

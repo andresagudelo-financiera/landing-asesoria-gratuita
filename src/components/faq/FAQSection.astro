@@ -3,10 +3,18 @@
  * FAQ Section - Objection Handling
  */
 
+export interface Props {
+    isPaid?: boolean;
+}
+
+const { isPaid = false } = Astro.props;
+
 const faqs = [
     {
         question: "¿Cuál es el costo de la sesión estratégica?",
-        answer: "La sesión estratégica tiene un valor comercial de 250 USD. Sin embargo, para los postulantes que califiquen, la sesión se realiza sin costo como primer paso de nuestro acompañamiento profesional. Si después de esta sesión deseas profundizar en tu plan de acción, ofrecemos paquetes de 3 sesiones por 675 USD (ahorras 75 USD) y 5 sesiones por 1,100 USD (ahorras 150 USD).",
+        answer: isPaid 
+            ? "La sesión estratégica tiene un valor especial de 50 USD (valor comercial de 250 USD). Si después de esta sesión deseas profundizar en tu plan de acción, ofrecemos paquetes de 3 sesiones por 675 USD (ahorras 75 USD) y 5 sesiones por 1,100 USD (ahorras 150 USD)."
+            : "La sesión estratégica tiene un valor comercial de 250 USD. Sin embargo, para los postulantes que califiquen, la sesión se realiza sin costo como primer paso de nuestro acompañamiento profesional. Si después de esta sesión deseas profundizar en tu plan de acción, ofrecemos paquetes de 3 sesiones por 675 USD (ahorras 75 USD) y 5 sesiones por 1,100 USD (ahorras 150 USD).",
     },
     {
         question: "¿La sesión estratégica es con Claudia Uribe?",
