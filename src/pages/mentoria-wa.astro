@@ -73,9 +73,8 @@ import MainLayout from "../layouts/MainLayout.astro";
               </li>
             </ul>
             <a
-              href="https://wa.me/14066606330?text=Hola%2C%20quiero%20aplicar%20a%20la%20mentoria"
-              target="_blank"
-              onclick="window.fbq && window.fbq('track', 'Lead', {currency: 'USD', value: 50000}); window.gtag && window.gtag('event', 'generate_lead', {currency: 'USD', value: 50000});"
+              href="#"
+              onclick="event.preventDefault(); window.fbq && window.fbq('track', 'Lead', {currency: 'USD', value: 50000}); window.gtag && window.gtag('event', 'generate_lead', {currency: 'USD', value: 50000}); setTimeout(() => window.open('https://wa.me/14066606330?text=Hola%2C%20quiero%20aplicar%20a%20la%20mentoria', '_blank'), 300);"
               class="inline-flex w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white font-bold uppercase tracking-wider rounded-xl shadow-[0_0_30px_rgba(255,152,0,0.3)] transition-all duration-300 hover:-translate-y-1 items-center justify-center gap-2 text-center"
             >
               Solicitar Mentoría por WhatsApp
