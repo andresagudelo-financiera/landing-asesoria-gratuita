@@ -8,6 +8,7 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { isTeamCoachVisible } from "../../utils/teamCoaches";
 
 // Get coaches from public/coachs directory
 const coachesDir = path.join(process.cwd(), "public/coachs");
@@ -46,6 +47,7 @@ try {
                     role.toLowerCase().includes("lider"),
             };
         })
+        .filter((coach) => isTeamCoachVisible(coach.name))
         // Sort leaders first
         .sort((a, b) => (a.isLeader === b.isLeader ? 0 : a.isLeader ? -1 : 1));
 } catch (e) {
