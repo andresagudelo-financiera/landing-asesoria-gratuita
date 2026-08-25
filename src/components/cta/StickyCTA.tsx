@@ -66,7 +66,7 @@ export default function StickyCTA({
           border-2 border-white/10 hover:border-white/30
         "
       >
-        <span>OBTENER MI PLAN</span>
+        <span>AGENDAR MI SESIÓN DE DIAGNÓSTICO</span>
         <svg
           className="w-5 h-5"
           fill="none"

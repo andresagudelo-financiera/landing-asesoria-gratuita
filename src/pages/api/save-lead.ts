@@ -1,6 +1,7 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import db from '../../utils/db';
+import crypto from 'crypto';
 
 export const POST: APIRoute = async ({ request }) => {
     try {
@@ -33,6 +34,41 @@ export const POST: APIRoute = async ({ request }) => {
     `);
 
         const result = stmt.run(name, email, score || 0, profile || '', JSON.stringify(answers || {}));
+
+        // === FACEBOOK CONVERSIONS API (CAPI) ===
+        try {
+            const hashedEmail = crypto.createHash('sha256').update(email.toLowerCase().trim()).digest('hex');
+            
+            const fn = name.trim().split(' ')[0] || '';
+            const hashedFn = fn ? crypto.createHash('sha256').update(fn.toLowerCase()).digest('hex') : '';
+            
+            const capiData = {
+                data: [
+                    {
+                        event_name: 'Lead',
+                        event_time: Math.floor(Date.now() / 1000),
+                        action_source: 'website',
+                        user_data: {
+                            em: [hashedEmail],
+                            ...(hashedFn ? { fn: [hashedFn] } : {})
+                        }
+                    }
+                ]
+            };
+
+            const pixelId = '1419175041954182';
+            const accessToken = 'EAAQigOKs2t0BSdVgn4NRv3KZBjGShDrX3X94RytkCbtjDop5GLgIoTrxAx44BxU4JJOO1CLLJ7z2FNiD3YMW9e9ZCuKvpmOm0DZBI72l9DfgolHQvaBbwqwhjLdQPgiu88GNyvGvgFaW088cSruAREdhFRO7XPub8OVExB3eVvjgGreF2KZC6ZCYwmFGHKwZDZD';
+            
+            fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(capiData)
+            }).catch(err => console.error('CAPI Fetch Error:', err));
+            
+        } catch (capiError) {
+            console.error('CAPI Setup Error:', capiError);
+        }
+        // =======================================
 
         return new Response(JSON.stringify({
             success: true,
