@@ -167,7 +167,7 @@ export const POST: APIRoute = async ({ request }) => {
 
             // 3. Send via Webhooks in parallel (GHL and n8n)
             const ghlWebhookUrl = 'https://services.leadconnectorhq.com/hooks/vEh7JAwgMFnBubxjOxId/webhook-trigger/35e95f17-f111-4ac1-9c7b-b9b1d332a25a';
-            const n8nWebhookUrl = 'https://services.leadconnectorhq.com/hooks/vEh7JAwgMFnBubxjOxId/webhook-trigger/35e95f17-f111-4ac1-9c7b-b9b1d332a25a';
+            const n8nWebhookUrl = 'https://n8n.financieramentecu.co/webhook/08057bb1-711f-4a85-a85b-52b6e4795fe0';
 
             const [webhookRes, n8nWebhookRes] = await Promise.all([
                 fetch(ghlWebhookUrl, {
